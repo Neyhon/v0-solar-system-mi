@@ -406,12 +406,12 @@
     }
 }
 
-/* ============ CARTOON COCKPIT ============ */
+/* ============ REALISTIC DAYTIME COCKPIT ============ */
 #ui-cabin {
     display: flex;
     flex-direction: column;
     pointer-events: none;
-    background: radial-gradient(circle at 50% 0%, #1a3a6a 0%, #0a1a3a 60%, #060815 100%);
+    background: linear-gradient(180deg, #7ec2ea 0%, #5a9ed0 40%, #0d4d9f 55%, #0a3a78 100%);
 }
 
 #ui-cabin.active {
@@ -425,84 +425,174 @@
     right: 0;
     height: 50%;
     overflow: hidden;
+    /* Curved window shape */
+    border-radius: 0 0 12% 12% / 0 0 25% 25%;
 }
 
+/* Daytime sky visible through the cockpit glass */
 .cockpit-sky {
     position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at 50% 100%, #2a4a8c 0%, #14356e 30%, #0a1f4a 60%, #060e28 100%);
+    inset: -2% -2% 0 -2%;
+    background:
+        /* Sun glow in upper area */
+        radial-gradient(ellipse 400px 220px at 72% 22%, rgba(255, 238, 190, 0.55) 0%, rgba(255, 228, 170, 0) 60%),
+        /* Sun disc */
+        radial-gradient(circle at 72% 22%, #fff6d4 0%, #ffe9ac 1.2%, rgba(255, 233, 172, 0) 2.2%),
+        /* Sky gradient: deep blue high, pale near horizon */
+        linear-gradient(180deg,
+            #3f7fc8 0%,
+            #5c9dd8 18%,
+            #81b9e8 42%,
+            #b1d4ee 72%,
+            #dbeaf5 88%,
+            #f2eadb 100%);
 }
 
+/* Soft clouds drifting across the sky */
 .cockpit-stars {
     position: absolute;
     inset: 0;
+    pointer-events: none;
     background-image:
-        radial-gradient(1.2px 1.2px at 8% 22%, rgba(221, 231, 255, 0.95), transparent),
-        radial-gradient(1px 1px at 18% 10%, rgba(191, 212, 255, 0.85), transparent),
-        radial-gradient(1.5px 1.5px at 32% 28%, rgba(221, 231, 255, 0.9), transparent),
-        radial-gradient(1px 1px at 45% 14%, rgba(191, 212, 255, 0.8), transparent),
-        radial-gradient(1.2px 1.2px at 58% 24%, rgba(221, 231, 255, 0.85), transparent),
-        radial-gradient(1px 1px at 72% 18%, rgba(143, 176, 255, 0.9), transparent),
-        radial-gradient(1.5px 1.5px at 85% 30%, rgba(221, 231, 255, 0.85), transparent),
-        radial-gradient(1px 1px at 95% 16%, rgba(191, 212, 255, 0.8), transparent),
-        radial-gradient(1px 1px at 5% 48%, rgba(221, 231, 255, 0.85), transparent),
-        radial-gradient(1.2px 1.2px at 22% 42%, rgba(191, 212, 255, 0.9), transparent),
-        radial-gradient(1px 1px at 38% 48%, rgba(143, 176, 255, 0.85), transparent),
-        radial-gradient(1.5px 1.5px at 52% 40%, rgba(221, 231, 255, 0.8), transparent),
-        radial-gradient(1px 1px at 68% 46%, rgba(191, 212, 255, 0.9), transparent),
-        radial-gradient(1.2px 1.2px at 82% 50%, rgba(221, 231, 255, 0.85), transparent),
-        radial-gradient(1px 1px at 92% 44%, rgba(143, 176, 255, 0.8), transparent),
-        radial-gradient(1px 1px at 12% 62%, rgba(221, 231, 255, 0.85), transparent),
-        radial-gradient(1.5px 1.5px at 28% 58%, rgba(191, 212, 255, 0.9), transparent),
-        radial-gradient(1px 1px at 45% 64%, rgba(221, 231, 255, 0.8), transparent),
-        radial-gradient(1.2px 1.2px at 62% 56%, rgba(143, 176, 255, 0.85), transparent),
-        radial-gradient(1px 1px at 78% 62%, rgba(191, 212, 255, 0.9), transparent),
-        radial-gradient(1px 1px at 88% 58%, rgba(221, 231, 255, 0.8), transparent);
-    opacity: 0.9;
+        radial-gradient(ellipse 180px 38px at 12% 45%, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.6) 30%, transparent 62%),
+        radial-gradient(ellipse 140px 30px at 18% 48%, rgba(255, 255, 255, 0.7), transparent 62%),
+        radial-gradient(ellipse 240px 44px at 38% 32%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.65) 28%, transparent 60%),
+        radial-gradient(ellipse 180px 36px at 43% 36%, rgba(255, 255, 255, 0.55), transparent 65%),
+        radial-gradient(ellipse 160px 34px at 58% 55%, rgba(255, 255, 255, 0.85), transparent 60%),
+        radial-gradient(ellipse 120px 28px at 62% 58%, rgba(255, 255, 255, 0.6), transparent 65%),
+        radial-gradient(ellipse 200px 38px at 86% 50%, rgba(255, 255, 255, 0.78), transparent 62%),
+        radial-gradient(ellipse 140px 30px at 90% 54%, rgba(255, 255, 255, 0.58), transparent 65%),
+        radial-gradient(ellipse 260px 40px at 25% 78%, rgba(255, 255, 255, 0.55), transparent 65%),
+        radial-gradient(ellipse 220px 36px at 72% 82%, rgba(255, 255, 255, 0.55), transparent 65%);
+    opacity: 0.95;
+    animation: cloudsDrift 120s linear infinite;
 }
 
+@keyframes cloudsDrift {
+    from { transform: translateX(0); }
+    to { transform: translateX(-6%); }
+}
+
+/* Cockpit glass: curved frame, reflections, distortion, struts */
 .window-frame-cartoon {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    /* Curved blue window frame like the cartoon cockpit */
-    border: 0;
-    background:
-        /* Top curved frame */
-        linear-gradient(180deg, var(--cockpit-blue) 0%, transparent 6%),
-        /* Bottom curved frame */
-        linear-gradient(0deg, var(--cockpit-blue-dark) 0%, transparent 14%);
+    /* Curved metallic frame around the glass */
     box-shadow:
-        inset 0 0 0 8px transparent,
-        inset 0 -12px 30px rgba(10, 58, 120, 0.8),
-        inset 0 8px 25px rgba(10, 30, 70, 0.6),
-        inset 0 0 80px rgba(0, 20, 50, 0.4);
-    border-radius: 0 0 50% 50% / 0 0 8% 8%;
+        /* Thick frame */
+        inset 0 0 0 10px #2b5f99,
+        inset 0 0 0 14px #1a447a,
+        /* Inner rim highlight */
+        inset 0 0 0 16px rgba(200, 224, 255, 0.4),
+        /* Deep cockpit vignette (cabin darker at edges) */
+        inset 0 -60px 80px rgba(20, 50, 100, 0.55),
+        inset 80px 0 90px rgba(10, 40, 90, 0.45),
+        inset -80px 0 90px rgba(10, 40, 90, 0.45),
+        inset 0 30px 70px rgba(180, 210, 240, 0.18),
+        /* Overall glass tint */
+        inset 0 0 200px rgba(140, 190, 230, 0.12);
+    border-radius: 0 0 12% 12% / 0 0 25% 25%;
+    /* Glass reflection streaks */
+    background:
+        /* Diagonal reflection sweep */
+        linear-gradient(125deg,
+            transparent 20%,
+            rgba(255, 255, 255, 0.08) 38%,
+            rgba(255, 255, 255, 0.14) 42%,
+            transparent 50%),
+        /* Top reflective sheen */
+        linear-gradient(180deg,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.06) 8%,
+            transparent 18%);
 }
 
-/* Curved sides of window */
+/* Left strut / cockpit pillar */
 .window-frame-cartoon::before {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
-    width: 10%;
+    width: 5%;
     height: 100%;
-    background: linear-gradient(90deg, var(--cockpit-blue-dark) 0%, var(--cockpit-blue) 50%, transparent 100%);
-    border-radius: 0 100% 100% 0 / 0 50% 50% 0;
-    opacity: 0.9;
+    background:
+        linear-gradient(90deg,
+            #0f3975 0%,
+            #1a4a8a 40%,
+            rgba(42, 102, 166, 0.25) 85%,
+            transparent 100%);
+    box-shadow: inset -2px 0 6px rgba(0, 0, 0, 0.45);
 }
 
+/* Right strut / cockpit pillar */
 .window-frame-cartoon::after {
     content: "";
     position: absolute;
     top: 0;
     right: 0;
-    width: 10%;
+    width: 5%;
     height: 100%;
-    background: linear-gradient(270deg, var(--cockpit-blue-dark) 0%, var(--cockpit-blue) 50%, transparent 100%);
-    border-radius: 100% 0 0 100% / 50% 0 0 50%;
-    opacity: 0.9;
+    background:
+        linear-gradient(270deg,
+            #0f3975 0%,
+            #1a4a8a 40%,
+            rgba(42, 102, 166, 0.25) 85%,
+            transparent 100%);
+    box-shadow: inset 2px 0 6px rgba(0, 0, 0, 0.45);
+}
+
+/* Central vertical strut dividing the panes (like real cockpits) */
+.cockpit-window .center-strut {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 8px;
+    margin-left: -4px;
+    background:
+        linear-gradient(180deg,
+            #1f4a82 0%,
+            #2b5f99 25%,
+            #1a447a 100%);
+    box-shadow:
+        0 0 0 1px rgba(10, 40, 90, 0.6),
+        2px 0 4px rgba(0, 0, 0, 0.35),
+        -2px 0 4px rgba(0, 0, 0, 0.35),
+        inset 1px 0 0 rgba(255, 255, 255, 0.15);
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* Horizontal strut (thin) */
+.cockpit-window .horizon-strut {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px;
+    background: linear-gradient(180deg, #1a447a, #2b5f99, #0f3975);
+    box-shadow:
+        0 0 0 1px rgba(10, 40, 90, 0.5),
+        0 1px 3px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Small rivets on the frame */
+.cockpit-window .rivets {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background-image:
+        radial-gradient(circle 3px at 18px 26px, #6a90c0 0 40%, #1a3960 45% 100%),
+        radial-gradient(circle 3px at 18px calc(50% - 8px), #6a90c0 0 40%, #1a3960 45% 100%),
+        radial-gradient(circle 3px at 18px calc(100% - 26px), #6a90c0 0 40%, #1a3960 45% 100%),
+        radial-gradient(circle 3px at calc(100% - 18px) 26px, #6a90c0 0 40%, #1a3960 45% 100%),
+        radial-gradient(circle 3px at calc(100% - 18px) calc(50% - 8px), #6a90c0 0 40%, #1a3960 45% 100%),
+        radial-gradient(circle 3px at calc(100% - 18px) calc(100% - 26px), #6a90c0 0 40%, #1a3960 45% 100%);
+    background-repeat: no-repeat;
 }
 
 /* === Curved blue control panel (cartoon style) === */

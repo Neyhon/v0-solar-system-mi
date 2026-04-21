@@ -165,6 +165,8 @@ export default function SpaceGame() {
     if (rocket) rocket.visible = skyVisible || nextPhase === "launching" || nextPhase === "countdown"
     if (cabinView) cabinView.visible = nextPhase === "launching" || nextPhase === "space"
     if (launchEffects) launchEffects.visible = nextPhase === "launching"
+    // Stars are only visible in outer space (daytime on Earth hides them)
+    if (stars) stars.visible = nextPhase === "space"
 
     if (nextPhase === "menu") {
       setHudStatus("Pulsa \"Jugar\" para iniciar")
@@ -182,7 +184,7 @@ export default function SpaceGame() {
       setIsAlert(false)
       if (cabinView) cabinView.visible = true
       if (skyDome) skyDome.visible = true
-      if (stars) stars.visible = true
+      if (stars) stars.visible = false
       if (camera) {
         // Camera positioned as if sitting in the seat, looking up and forward
         camera.position.set(0, 0.6, -0.3) // Seated position
@@ -211,7 +213,11 @@ export default function SpaceGame() {
       }
       if (skyDome) skyDome.visible = true
     } else if (nextPhase === "space") {
-      setHudStatus("Arrastra para mirar. Pellizca para zoom. Toca un planeta.")
+      if (controlModeRef.current === "keyboard") {
+        setHudStatus("WASD para moverse, ratón para mirar. Clic en un planeta.")
+      } else {
+        setHudStatus("Arrastra para mirar. Pellizca para zoom. Toca un planeta.")
+      }
       setIsAlert(false)
       worldRef.current.isLaunching = false
 
@@ -280,8 +286,9 @@ export default function SpaceGame() {
 
     // Scene
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x0f1f4f)
-    scene.fog = new THREE.Fog(0x0f1f4f, 92, 360)
+    // Bright daytime sky
+    scene.background = new THREE.Color(0x9cc9f2)
+    scene.fog = new THREE.Fog(0xc7ddf0, 110, 380)
     sceneRef.current = scene
 
     // Camera
@@ -293,14 +300,14 @@ export default function SpaceGame() {
     const clock = new THREE.Clock()
     clockRef.current = clock
 
-    // Lights
-    const ambient = new THREE.AmbientLight(0x7588cb, 0.62)
+    // Lights - warm sunny daytime
+    const ambient = new THREE.AmbientLight(0xc9e0ff, 0.78)
     scene.add(ambient)
 
-    const hemi = new THREE.HemisphereLight(0xa5bfff, 0x284228, 0.52)
+    const hemi = new THREE.HemisphereLight(0xbfe1ff, 0x5a7a4a, 0.85)
     scene.add(hemi)
 
-    const keyLight = new THREE.DirectionalLight(0xfff2cf, 1.24)
+    const keyLight = new THREE.DirectionalLight(0xfff6e0, 1.45)
     keyLight.position.set(32, 42, 16)
     keyLight.castShadow = QUALITY.enableShadows
     if (QUALITY.enableShadows) {
@@ -348,10 +355,10 @@ export default function SpaceGame() {
       const skyMaterial = new THREE.ShaderMaterial({
         side: THREE.BackSide,
         uniforms: {
-          topColor: { value: new THREE.Color(0x071337) },
-          midColor: { value: new THREE.Color(0x14356e) },
-          horizonColor: { value: new THREE.Color(0x28529b) },
-          bottomColor: { value: new THREE.Color(0x1f4f44) },
+          topColor: { value: new THREE.Color(0x4a8fd8) },
+          midColor: { value: new THREE.Color(0x7ab8eb) },
+          horizonColor: { value: new THREE.Color(0xdbe9f4) },
+          bottomColor: { value: new THREE.Color(0x8eb08a) },
           offset: { value: 70.0 },
           exponent: { value: 0.64 },
         },
@@ -432,25 +439,34 @@ export default function SpaceGame() {
       return stars
     }
 
-    // Moon
-    function createMoon() {
-      const moon = new THREE.Mesh(
-        new THREE.SphereGeometry(7.5, performanceMode ? 18 : 28, performanceMode ? 18 : 28),
-        new THREE.MeshStandardMaterial({
-          color: 0xf1f3ff,
-          emissive: 0xb4c5ff,
-          emissiveIntensity: 0.24,
-          roughness: 0.78,
-          metalness: 0.02,
+    // Sun (daytime replacement for moon)
+    function createSun() {
+      const sun = new THREE.Mesh(
+        new THREE.SphereGeometry(8.5, performanceMode ? 18 : 28, performanceMode ? 18 : 28),
+        new THREE.MeshBasicMaterial({
+          color: 0xfff4c8,
         }),
       )
-      moon.position.set(-124, 104, -84)
-      scene.add(moon)
+      sun.position.set(-124, 118, -84)
+      scene.add(sun)
+
+      // Soft halo around the sun
+      const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(14, performanceMode ? 16 : 24, performanceMode ? 16 : 24),
+        new THREE.MeshBasicMaterial({
+          color: 0xffeaa8,
+          transparent: true,
+          opacity: 0.28,
+          depthWrite: false,
+        }),
+      )
+      halo.position.copy(sun.position)
+      scene.add(halo)
 
       if (!performanceMode) {
-        const moonGlow = new THREE.PointLight(0x9bb6ff, 0.42, 320, 1.8)
-        moonGlow.position.copy(moon.position)
-        scene.add(moonGlow)
+        const sunGlow = new THREE.PointLight(0xfff0c0, 0.55, 360, 1.8)
+        sunGlow.position.copy(sun.position)
+        scene.add(sunGlow)
       }
     }
 
@@ -1524,14 +1540,21 @@ export default function SpaceGame() {
       rocket.add(noseTip)
 
       // Big circular window in center of body (cartoon style)
+      // Grouped so we can tilt the whole window unit together
+      const windowGroup = new THREE.Group()
+      windowGroup.position.set(0, 7, 1.55)
+      // Slight vertical tilt around the body axis so the ring isn't a flat coin
+      // (this rotates the ring plane — tilting its top backward into the body)
+      windowGroup.rotation.z = 0.18
+
       // Window frame (ring sticking out)
       const windowOuterFrame = new THREE.Mesh(
         new THREE.TorusGeometry(0.85, 0.25, performanceMode ? 12 : 16, performanceMode ? 20 : 32),
         new THREE.MeshStandardMaterial({ color: 0xdfe3ea, roughness: 0.4, metalness: 0.3 }),
       )
       windowOuterFrame.rotation.y = Math.PI / 2
-      windowOuterFrame.position.set(0, 7, 1.55)
-      rocket.add(windowOuterFrame)
+      windowOuterFrame.position.set(0, 0, 0)
+      windowGroup.add(windowOuterFrame)
 
       // Window inner frame
       const windowInnerFrame = new THREE.Mesh(
@@ -1539,8 +1562,8 @@ export default function SpaceGame() {
         new THREE.MeshStandardMaterial({ color: 0xb8c0cc, roughness: 0.3, metalness: 0.5 }),
       )
       windowInnerFrame.rotation.y = Math.PI / 2
-      windowInnerFrame.position.set(0, 7, 1.72)
-      rocket.add(windowInnerFrame)
+      windowInnerFrame.position.set(0, 0, 0.17)
+      windowGroup.add(windowInnerFrame)
 
       // Window glass (dark blue/purple, round)
       const windowGlass = new THREE.Mesh(
@@ -1553,8 +1576,8 @@ export default function SpaceGame() {
           metalness: 0.7,
         }),
       )
-      windowGlass.position.set(0, 7, 1.7)
-      rocket.add(windowGlass)
+      windowGlass.position.set(0, 0, 0.15)
+      windowGroup.add(windowGlass)
 
       // Highlight/shine on window
       const windowShine = new THREE.Mesh(
@@ -1565,8 +1588,10 @@ export default function SpaceGame() {
           opacity: 0.25,
         }),
       )
-      windowShine.position.set(-0.15, 7.2, 1.73)
-      rocket.add(windowShine)
+      windowShine.position.set(-0.15, 0.2, 0.18)
+      windowGroup.add(windowShine)
+
+      rocket.add(windowGroup)
 
       // Pink fins at the base (cartoon style - chunky curved fins)
       // Using a rounded shape
@@ -1822,7 +1847,7 @@ export default function SpaceGame() {
     // Create all scene elements
     const skyDome = createSkyDome()
     const stars = createStars()
-    createMoon()
+    createSun()
     createEnvironment()
     const clouds = createCloudBand()
     createLaunchpad()
@@ -2191,19 +2216,38 @@ export default function SpaceGame() {
         const countdownDuration = 3
 
         if (countdownTime >= countdownDuration) {
+          // Reset rocket shake before launching
+          rocket.position.x = 0
+          rocket.position.z = 0
+          rocket.rotation.z = 0
+          rocket.rotation.x = 0
           setPhase("launching")
         } else {
           rocket.visible = true
-          rocket.position.y = 1
+
+          // Rocket begins to tremble as engines spool up.
+          // Intensity ramps up during the countdown (stronger near the end).
+          const shakeProgress = countdownTime / countdownDuration
+          const shakeIntensity = 0.04 + shakeProgress * shakeProgress * 0.22
+          const highFreq = Math.sin(elapsed * 55) * Math.cos(elapsed * 41)
+          const highFreq2 = Math.sin(elapsed * 67 + 1.3) * Math.cos(elapsed * 39 + 0.7)
+
+          rocket.position.y = 1 + highFreq * shakeIntensity * 0.35
+          rocket.position.x = highFreq * shakeIntensity
+          rocket.position.z = highFreq2 * shakeIntensity
+          rocket.rotation.z = highFreq2 * shakeIntensity * 0.08
+          rocket.rotation.x = highFreq * shakeIntensity * 0.06
 
           const distance = 20
           const height = 8
           const angle = elapsed * 0.15
 
+          // Camera also shakes slightly for dramatic effect
+          const camShake = shakeIntensity * 0.6
           camera.position.set(
-            Math.cos(angle) * distance,
-            height + Math.sin(countdownTime * Math.PI * 2 / countdownDuration) * 0.5,
-            Math.sin(angle) * distance + 3
+            Math.cos(angle) * distance + highFreq * camShake,
+            height + Math.sin(countdownTime * Math.PI * 2 / countdownDuration) * 0.5 + highFreq2 * camShake,
+            Math.sin(angle) * distance + 3 + highFreq2 * camShake
           )
           camera.lookAt(0, 3, 0)
 
@@ -2232,6 +2276,9 @@ export default function SpaceGame() {
             controls.targetCameraRotation = { x: 0, y: 0 }
             controls.cameraDistance = 120
             controls.targetDistance = 120
+            // Initial look direction for keyboard/FPS mode (pointing towards the sun/origin)
+            controls.yaw = Math.PI / 4
+            controls.pitch = -0.17
           }
 
           setPhase("space")
@@ -2269,21 +2316,58 @@ export default function SpaceGame() {
       }
       // Phase: Space
       else if (world.phase === "space") {
-        // Update camera controls
-        controls.targetCameraRotation.x += (controls.cameraRotation.x - controls.targetCameraRotation.x) * 0.08
-        controls.targetCameraRotation.y += (controls.cameraRotation.y - controls.targetCameraRotation.y) * 0.08
-        controls.targetDistance += (controls.cameraDistance - controls.targetDistance) * 0.08
+        if (controlModeRef.current === "keyboard") {
+          // === FPS-STYLE FREE FLIGHT (keyboard + mouse) ===
+          // Forward direction from yaw/pitch. Default (yaw=0, pitch=0) looks down -Z
+          const cosPitch = Math.cos(controls.pitch)
+          const forward = new THREE.Vector3(
+            -Math.sin(controls.yaw) * cosPitch,
+            Math.sin(controls.pitch),
+            -Math.cos(controls.yaw) * cosPitch,
+          )
+          const rightVec = new THREE.Vector3(
+            Math.cos(controls.yaw),
+            0,
+            -Math.sin(controls.yaw),
+          )
 
-        camera.position.lerp(controls.spaceTargetPosition, 0.08)
+          // Build movement intent from keys
+          const move = new THREE.Vector3()
+          if (controls.keys.w) move.add(forward)
+          if (controls.keys.s) move.sub(forward)
+          if (controls.keys.d) move.add(rightVec)
+          if (controls.keys.a) move.sub(rightVec)
+          if (controls.keys.space) move.y += 1
+          if (controls.keys.shift) move.y -= 1
 
-        const theta = controls.targetCameraRotation.x
-        const phi = Math.max(0.1, Math.min(Math.PI - 0.1, Math.PI / 2 + controls.targetCameraRotation.y))
+          if (move.lengthSq() > 0) {
+            move.normalize().multiplyScalar(controls.moveSpeed * delta)
+            controls.spaceTargetPosition.add(move)
+          }
 
-        const lookX = camera.position.x + controls.targetDistance * Math.sin(phi) * Math.cos(theta)
-        const lookY = camera.position.y + controls.targetDistance * Math.cos(phi)
-        const lookZ = camera.position.z + controls.targetDistance * Math.sin(phi) * Math.sin(theta)
+          camera.position.copy(controls.spaceTargetPosition)
+          camera.lookAt(
+            camera.position.x + forward.x,
+            camera.position.y + forward.y,
+            camera.position.z + forward.z,
+          )
+        } else {
+          // === TOUCH ORBIT MODE ===
+          controls.targetCameraRotation.x += (controls.cameraRotation.x - controls.targetCameraRotation.x) * 0.08
+          controls.targetCameraRotation.y += (controls.cameraRotation.y - controls.targetCameraRotation.y) * 0.08
+          controls.targetDistance += (controls.cameraDistance - controls.targetDistance) * 0.08
 
-        camera.lookAt(lookX, lookY, lookZ)
+          camera.position.lerp(controls.spaceTargetPosition, 0.08)
+
+          const theta = controls.targetCameraRotation.x
+          const phi = Math.max(0.1, Math.min(Math.PI - 0.1, Math.PI / 2 + controls.targetCameraRotation.y))
+
+          const lookX = camera.position.x + controls.targetDistance * Math.sin(phi) * Math.cos(theta)
+          const lookY = camera.position.y + controls.targetDistance * Math.cos(phi)
+          const lookZ = camera.position.z + controls.targetDistance * Math.sin(phi) * Math.sin(theta)
+
+          camera.lookAt(lookX, lookY, lookZ)
+        }
 
         // Update planets
         planetsRef.current.forEach((planetGroup) => {
@@ -2517,13 +2601,16 @@ export default function SpaceGame() {
         </div>
       </div>
 
-      {/* Cabin - Cartoon style blue cockpit */}
+      {/* Cabin - Realistic daytime cockpit */}
       <div id="ui-cabin" className={`ui-panel ${phase === "cabin" ? "active" : ""}`}>
-        {/* Window at the top showing the sky/space */}
+        {/* Cockpit glass showing a realistic daytime sky outside */}
         <div className="cockpit-window">
           <div className="cockpit-sky">
             <div className="cockpit-stars"></div>
           </div>
+          <div className="horizon-strut"></div>
+          <div className="center-strut"></div>
+          <div className="rivets"></div>
           <div className="window-frame-cartoon"></div>
         </div>
 
@@ -2648,7 +2735,11 @@ export default function SpaceGame() {
         <div className="space-hud-top">
           <div className="space-card">
             <p className="space-title">EXPLORACIÓN ESPACIAL</p>
-            <p className="space-hint">Arrastra para mirar | Pellizca para zoom | Toca un planeta</p>
+            <p className="space-hint">
+              {controlMode === "keyboard"
+                ? "WASD moverse · Espacio subir · Shift bajar · Ratón mirar (clic para capturar) · Clic en planeta"
+                : "Arrastra para mirar · Pellizca para zoom · Toca un planeta"}
+            </p>
           </div>
         </div>
         <div className="space-hud-bottom">
