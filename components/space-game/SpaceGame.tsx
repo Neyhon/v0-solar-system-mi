@@ -4,16 +4,81 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import * as THREE from "three"
 import "./game.css"
 
+// Visual moon configuration per planet (not astronomically exact — stylized for the scene)
+type MoonDef = { radius: number; color: number; distance: number; speed: number }
+type PlanetDef = {
+  name: string
+  radius: number
+  color: number
+  distance: number
+  speed: number
+  rotationSpeed: number
+  tilt: number
+  description: string
+  temperature: string
+  diameter: string
+  moons: number
+  fact: string
+  moonList?: MoonDef[]
+}
+
 // Planet data for educational content
-const PLANET_DATA = [
+const PLANET_DATA: PlanetDef[] = [
   { name: "Mercurio", radius: 0.8, color: 0x9e9e9e, distance: 45, speed: 0.025, rotationSpeed: 0.002, tilt: 0.01, description: "El planeta más cercano al Sol", temperature: "430°C día / -180°C noche", diameter: "4.879 km", moons: 0, fact: "Un año dura solo 88 días terrestres" },
   { name: "Venus", radius: 1.4, color: 0xffcc66, distance: 70, speed: 0.018, rotationSpeed: 0.001, tilt: 0.03, description: "El planeta más caliente", temperature: "465°C", diameter: "12.104 km", moons: 0, fact: "Gira al revés que los demás planetas" },
-  { name: "Tierra", radius: 1.5, color: 0x4a90d9, distance: 100, speed: 0.012, rotationSpeed: 0.02, tilt: 0.41, description: "Nuestro hogar", temperature: "15°C promedio", diameter: "12.742 km", moons: 1, fact: "El único planeta con vida conocida" },
-  { name: "Marte", radius: 1.0, color: 0xc1440e, distance: 140, speed: 0.008, rotationSpeed: 0.019, tilt: 0.44, description: "El planeta rojo", temperature: "-65°C promedio", diameter: "6.779 km", moons: 2, fact: "Tiene las montañas más altas del sistema" },
-  { name: "Júpiter", radius: 4.5, color: 0xd4a574, distance: 200, speed: 0.004, rotationSpeed: 0.04, tilt: 0.05, description: "El gigante gaseoso", temperature: "-110°C", diameter: "139.820 km", moons: 95, fact: "Es tan grande que caben 1.300 tierras" },
-  { name: "Saturno", radius: 3.8, color: 0xf0d090, distance: 260, speed: 0.003, rotationSpeed: 0.038, tilt: 0.47, description: "El planeta de los anillos", temperature: "-140°C", diameter: "116.460 km", moons: 146, fact: "Sus anillos son de hielo y rocas" },
-  { name: "Urano", radius: 2.5, color: 0x7de3e3, distance: 320, speed: 0.002, rotationSpeed: 0.028, tilt: 1.71, description: "Planeta inclinado", temperature: "-195°C", diameter: "50.724 km", moons: 28, fact: "Gira de lado" },
-  { name: "Neptuno", radius: 2.4, color: 0x3e5fe3, distance: 380, speed: 0.001, rotationSpeed: 0.03, tilt: 0.49, description: "El planeta más lejano", temperature: "-200°C", diameter: "49.244 km", moons: 16, fact: "Tiene los vientos más fuertes del sistema" }
+  {
+    name: "Tierra", radius: 1.5, color: 0x4a90d9, distance: 100, speed: 0.012, rotationSpeed: 0.02, tilt: 0.41,
+    description: "Nuestro hogar", temperature: "15°C promedio", diameter: "12.742 km", moons: 1,
+    fact: "El único planeta con vida conocida",
+    moonList: [{ radius: 0.4, color: 0xcccccc, distance: 3.4, speed: 0.6 }],
+  },
+  {
+    name: "Marte", radius: 1.0, color: 0xc1440e, distance: 140, speed: 0.008, rotationSpeed: 0.019, tilt: 0.44,
+    description: "El planeta rojo", temperature: "-65°C promedio", diameter: "6.779 km", moons: 2,
+    fact: "Tiene las montañas más altas del sistema",
+    moonList: [
+      { radius: 0.18, color: 0x887766, distance: 2.2, speed: 0.9 },
+      { radius: 0.14, color: 0x998877, distance: 2.9, speed: 0.55 },
+    ],
+  },
+  {
+    name: "Júpiter", radius: 4.5, color: 0xd4a574, distance: 200, speed: 0.004, rotationSpeed: 0.04, tilt: 0.05,
+    description: "El gigante gaseoso", temperature: "-110°C", diameter: "139.820 km", moons: 95,
+    fact: "Es tan grande que caben 1.300 tierras",
+    moonList: [
+      { radius: 0.42, color: 0xffe680, distance: 7.2, speed: 0.8 },  // Io
+      { radius: 0.38, color: 0xe8d9b0, distance: 8.8, speed: 0.6 },  // Europa
+      { radius: 0.55, color: 0x988878, distance: 10.6, speed: 0.45 }, // Ganymede
+      { radius: 0.5, color: 0x554440, distance: 12.6, speed: 0.3 },   // Callisto
+    ],
+  },
+  {
+    name: "Saturno", radius: 3.8, color: 0xf0d090, distance: 260, speed: 0.003, rotationSpeed: 0.038, tilt: 0.47,
+    description: "El planeta de los anillos", temperature: "-140°C", diameter: "116.460 km", moons: 146,
+    fact: "Sus anillos son de hielo y rocas",
+    moonList: [
+      { radius: 0.5, color: 0xe6b874, distance: 9.8, speed: 0.45 }, // Titan
+      { radius: 0.28, color: 0xdedede, distance: 11.8, speed: 0.3 }, // Rhea
+      { radius: 0.22, color: 0xccbbaa, distance: 13.5, speed: 0.22 }, // Iapetus
+    ],
+  },
+  {
+    name: "Urano", radius: 2.5, color: 0x7de3e3, distance: 320, speed: 0.002, rotationSpeed: 0.028, tilt: 1.71,
+    description: "Planeta inclinado", temperature: "-195°C", diameter: "50.724 km", moons: 28,
+    fact: "Gira de lado",
+    moonList: [
+      { radius: 0.3, color: 0xbbcccc, distance: 5.0, speed: 0.5 },
+      { radius: 0.26, color: 0xaabbbb, distance: 6.5, speed: 0.35 },
+    ],
+  },
+  {
+    name: "Neptuno", radius: 2.4, color: 0x3e5fe3, distance: 380, speed: 0.001, rotationSpeed: 0.03, tilt: 0.49,
+    description: "El planeta más lejano", temperature: "-200°C", diameter: "49.244 km", moons: 16,
+    fact: "Tiene los vientos más fuertes del sistema",
+    moonList: [
+      { radius: 0.42, color: 0xddccbb, distance: 5.6, speed: 0.42 }, // Triton
+    ],
+  },
 ]
 
 type Phase = "menu" | "launchpad" | "intro" | "cabin" | "countdown" | "launching" | "space"
@@ -55,6 +120,9 @@ export default function SpaceGame() {
   const solarSystemRef = useRef<THREE.Group | null>(null)
   const planetsRef = useRef<THREE.Group[]>([])
   const asteroidBeltRef = useRef<THREE.Group | null>(null)
+  const kuiperBeltRef = useRef<THREE.Group | null>(null)
+  const cometsRef = useRef<THREE.Group | null>(null)
+  const meteorsRef = useRef<THREE.Group | null>(null)
   const starfieldRef = useRef<THREE.Group | null>(null)
 
   // World state
@@ -167,6 +235,14 @@ export default function SpaceGame() {
     if (launchEffects) launchEffects.visible = nextPhase === "launching"
     // Stars are only visible in outer space (daytime on Earth hides them)
     if (stars) stars.visible = nextPhase === "space"
+    // Solar system objects are only visible when we are actually in space
+    const inSpace = nextPhase === "space"
+    if (solarSystemRef.current) solarSystemRef.current.visible = inSpace
+    if (asteroidBeltRef.current) asteroidBeltRef.current.visible = inSpace
+    if (kuiperBeltRef.current) kuiperBeltRef.current.visible = inSpace
+    if (cometsRef.current) cometsRef.current.visible = inSpace
+    if (meteorsRef.current) meteorsRef.current.visible = inSpace
+    if (starfieldRef.current) starfieldRef.current.visible = inSpace
 
     if (nextPhase === "menu") {
       setHudStatus("Pulsa \"Jugar\" para iniciar")
@@ -227,10 +303,18 @@ export default function SpaceGame() {
       if (cabinView) cabinView.visible = false
       if (skyDome) skyDome.visible = false
 
+      // Space is always dark — switch the scene background to near-black and remove fog
+      scene.background = new THREE.Color(0x02030a)
+      scene.fog = null
+
       if (camera) {
         camera.fov = 65
         camera.updateProjectionMatrix()
       }
+    } else {
+      // Any other phase (menu, launchpad, intro, cabin, countdown, launching) happens on Earth — daytime
+      scene.background = new THREE.Color(0x9cc9f2)
+      scene.fog = new THREE.Fog(0xc7ddf0, 110, 380)
     }
   }, [])
 
@@ -1543,16 +1627,15 @@ export default function SpaceGame() {
       // Grouped so we can tilt the whole window unit together
       const windowGroup = new THREE.Group()
       windowGroup.position.set(0, 7, 1.55)
-      // Slight vertical tilt around the body axis so the ring isn't a flat coin
-      // (this rotates the ring plane — tilting its top backward into the body)
-      windowGroup.rotation.z = 0.18
+      // Slight downward tilt so the window looks recessed into the body
+      // (top of ring tips back into the rocket, bottom sticks forward)
+      windowGroup.rotation.x = -0.2
 
-      // Window frame (ring sticking out)
+      // Window frame (ring sticking out) - faces +Z by default (hole perpendicular to Z)
       const windowOuterFrame = new THREE.Mesh(
         new THREE.TorusGeometry(0.85, 0.25, performanceMode ? 12 : 16, performanceMode ? 20 : 32),
         new THREE.MeshStandardMaterial({ color: 0xdfe3ea, roughness: 0.4, metalness: 0.3 }),
       )
-      windowOuterFrame.rotation.y = Math.PI / 2
       windowOuterFrame.position.set(0, 0, 0)
       windowGroup.add(windowOuterFrame)
 
@@ -1561,8 +1644,7 @@ export default function SpaceGame() {
         new THREE.TorusGeometry(0.65, 0.08, performanceMode ? 10 : 14, performanceMode ? 18 : 28),
         new THREE.MeshStandardMaterial({ color: 0xb8c0cc, roughness: 0.3, metalness: 0.5 }),
       )
-      windowInnerFrame.rotation.y = Math.PI / 2
-      windowInnerFrame.position.set(0, 0, 0.17)
+      windowInnerFrame.position.set(0, 0, 0.18)
       windowGroup.add(windowInnerFrame)
 
       // Window glass (dark blue/purple, round)
@@ -1714,20 +1796,64 @@ export default function SpaceGame() {
         planet.name = `planet-hit-${index}`
         planetGroup.add(planet)
 
+        // Saturn rings
         if (data.name === "Saturno") {
-          const ringGeometry = new THREE.TorusGeometry(data.radius * 1.6, data.radius * 0.4, 2, performanceMode ? 32 : 64)
+          const ringGeometry = new THREE.RingGeometry(data.radius * 1.3, data.radius * 2.1, performanceMode ? 48 : 80)
           const ringMaterial = new THREE.MeshStandardMaterial({
-            color: 0xc8b896,
+            color: 0xe6d4a8,
             roughness: 0.9,
             metalness: 0.05,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.7,
+            opacity: 0.78,
           })
           const ring = new THREE.Mesh(ringGeometry, ringMaterial)
-          ring.rotation.x = Math.PI / 2
+          ring.rotation.x = Math.PI / 2.1
           ring.name = "saturn-ring"
           planetGroup.add(ring)
+        }
+
+        // Uranus tilted thin rings
+        if (data.name === "Urano") {
+          const ringGeometry = new THREE.RingGeometry(data.radius * 1.4, data.radius * 1.8, performanceMode ? 40 : 64)
+          const ringMaterial = new THREE.MeshStandardMaterial({
+            color: 0xa8d0d0,
+            roughness: 0.85,
+            metalness: 0.1,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.45,
+          })
+          const ring = new THREE.Mesh(ringGeometry, ringMaterial)
+          // Uranus rolls on its side, so rings are nearly vertical
+          ring.rotation.y = Math.PI / 2
+          ring.rotation.x = 0.15
+          planetGroup.add(ring)
+        }
+
+        // Moons
+        if (data.moonList && data.moonList.length > 0) {
+          data.moonList.forEach((moonDef, moonIndex) => {
+            const moonGroup = new THREE.Group()
+            moonGroup.userData = {
+              ...moonDef,
+              angle: Math.random() * Math.PI * 2,
+            }
+            const moonGeo = new THREE.SphereGeometry(
+              moonDef.radius,
+              performanceMode ? 10 : 16,
+              performanceMode ? 8 : 12,
+            )
+            const moonMat = new THREE.MeshStandardMaterial({
+              color: moonDef.color,
+              roughness: 0.85,
+              metalness: 0.05,
+            })
+            const moon = new THREE.Mesh(moonGeo, moonMat)
+            moonGroup.add(moon)
+            moonGroup.name = `moon-${index}-${moonIndex}`
+            planetGroup.add(moonGroup)
+          })
         }
 
         planetGroup.position.set(
@@ -1793,6 +1919,158 @@ export default function SpaceGame() {
 
       scene.add(asteroidBelt)
       return asteroidBelt
+    }
+
+    // Kuiper belt (icy bodies beyond Neptune)
+    function createKuiperBelt() {
+      const kuiperBelt = new THREE.Group()
+      kuiperBelt.name = "kuiper-belt"
+
+      const iceMaterial = new THREE.MeshStandardMaterial({
+        color: 0xa8b8c8,
+        roughness: 0.7,
+        metalness: 0.15,
+        flatShading: true,
+      })
+
+      const count = performanceMode ? 60 : 130
+      const innerRadius = 430
+      const outerRadius = 500
+
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const distance = innerRadius + Math.random() * (outerRadius - innerRadius)
+        const size = 0.25 + Math.random() * 1.0
+
+        const body = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), iceMaterial)
+        body.position.set(
+          Math.cos(angle) * distance,
+          (Math.random() - 0.5) * 16,
+          Math.sin(angle) * distance,
+        )
+        body.rotation.set(
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+        )
+        body.userData = {
+          orbitAngle: angle,
+          orbitDistance: distance,
+          rotationSpeed: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.01,
+            (Math.random() - 0.5) * 0.01,
+            (Math.random() - 0.5) * 0.01,
+          ),
+        }
+        kuiperBelt.add(body)
+      }
+
+      scene.add(kuiperBelt)
+      return kuiperBelt
+    }
+
+    // Comets with glowing tails on elliptical orbits
+    function createComets() {
+      const comets = new THREE.Group()
+      comets.name = "comets"
+
+      const cometCount = performanceMode ? 2 : 4
+      for (let i = 0; i < cometCount; i++) {
+        const comet = new THREE.Group()
+
+        // Nucleus
+        const nucleus = new THREE.Mesh(
+          new THREE.SphereGeometry(0.5, performanceMode ? 10 : 14, performanceMode ? 8 : 10),
+          new THREE.MeshStandardMaterial({
+            color: 0xe8eef5,
+            emissive: 0x88aabb,
+            emissiveIntensity: 0.55,
+            roughness: 0.6,
+          }),
+        )
+        comet.add(nucleus)
+
+        // Coma (fuzzy halo)
+        const coma = new THREE.Mesh(
+          new THREE.SphereGeometry(1.3, performanceMode ? 10 : 14, performanceMode ? 8 : 10),
+          new THREE.MeshBasicMaterial({
+            color: 0xaaccee,
+            transparent: true,
+            opacity: 0.28,
+            depthWrite: false,
+          }),
+        )
+        comet.add(coma)
+
+        // Tail made of stretched, fading spheres pointing away from origin (sun)
+        const tail = new THREE.Group()
+        tail.name = "comet-tail"
+        const segments = performanceMode ? 10 : 18
+        for (let s = 0; s < segments; s++) {
+          const t = s / segments
+          const segment = new THREE.Mesh(
+            new THREE.SphereGeometry(0.9 * (1 - t * 0.6), 8, 6),
+            new THREE.MeshBasicMaterial({
+              color: 0xbbddff,
+              transparent: true,
+              opacity: 0.35 * (1 - t),
+              depthWrite: false,
+            }),
+          )
+          // Tail extends along +X locally; orientation is set each frame.
+          segment.position.set(3 + t * 30, 0, 0)
+          tail.add(segment)
+        }
+        comet.add(tail)
+
+        // Each comet has its own elliptical orbit
+        const a = 220 + Math.random() * 140  // semi-major axis
+        const b = 60 + Math.random() * 80    // semi-minor
+        comet.userData = {
+          a,
+          b,
+          angle: Math.random() * Math.PI * 2,
+          speed: 0.04 + Math.random() * 0.05,
+          rotation: Math.random() * Math.PI * 2, // orbit plane rotation around Y
+          yOffset: (Math.random() - 0.5) * 20,
+        }
+
+        comets.add(comet)
+      }
+
+      scene.add(comets)
+      return comets
+    }
+
+    // Shooting-star streaks that flash across the sky at random
+    function createMeteors() {
+      const meteors = new THREE.Group()
+      meteors.name = "meteors"
+
+      const count = performanceMode ? 6 : 12
+      for (let i = 0; i < count; i++) {
+        // Each meteor is a thin stretched line
+        const geo = new THREE.CylinderGeometry(0.08, 0.02, 6, 4)
+        geo.translate(0, 3, 0)
+        const mat = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        })
+        const meteor = new THREE.Mesh(geo, mat)
+        meteor.userData = {
+          velocity: new THREE.Vector3(),
+          life: 0,
+          maxLife: 0,
+          delay: Math.random() * 8,
+        }
+        meteor.visible = false
+        meteors.add(meteor)
+      }
+
+      scene.add(meteors)
+      return meteors
     }
 
     // Space starfield
@@ -2150,9 +2428,14 @@ export default function SpaceGame() {
     }
 
     // Animation loop
+    let rafId = 0
+    let cancelled = false
     function animate() {
-      requestAnimationFrame(animate)
-      const delta = clock.getDelta()
+      if (cancelled) return
+      rafId = requestAnimationFrame(animate)
+      // Clamp delta to avoid huge jumps when the tab is backgrounded and then resumed
+      // (without this, orbit rotation can suddenly lurch forward on tab refocus)
+      const delta = Math.min(clock.getDelta(), 0.05)
       const elapsed = clock.elapsedTime
 
       const world = worldRef.current
@@ -2267,9 +2550,19 @@ export default function SpaceGame() {
 
           // Create solar system when entering space
           if (!solarSystemRef.current) {
-            solarSystemRef.current = createSolarSystem()
-            asteroidBeltRef.current = createAsteroidBelt()
-            starfieldRef.current = createSpaceStarfield()
+    solarSystemRef.current = createSolarSystem()
+    asteroidBeltRef.current = createAsteroidBelt()
+    kuiperBeltRef.current = createKuiperBelt()
+    cometsRef.current = createComets()
+    meteorsRef.current = createMeteors()
+    starfieldRef.current = createSpaceStarfield()
+    // Solar system objects start hidden — only shown during the "space" phase
+    if (solarSystemRef.current) solarSystemRef.current.visible = false
+    if (asteroidBeltRef.current) asteroidBeltRef.current.visible = false
+    if (kuiperBeltRef.current) kuiperBeltRef.current.visible = false
+    if (cometsRef.current) cometsRef.current.visible = false
+    if (meteorsRef.current) meteorsRef.current.visible = false
+    if (starfieldRef.current) starfieldRef.current.visible = false
 
             controls.spaceTargetPosition.set(120, 30, 120)
             controls.cameraRotation = { x: 0, y: 0 }
@@ -2369,7 +2662,7 @@ export default function SpaceGame() {
           camera.lookAt(lookX, lookY, lookZ)
         }
 
-        // Update planets
+        // Update planets and their moons
         planetsRef.current.forEach((planetGroup) => {
           const data = planetGroup.userData
           data.angle += data.speed * delta
@@ -2381,19 +2674,111 @@ export default function SpaceGame() {
             Math.sin(data.angle) * data.distance
           )
 
-          planetGroup.children[0].rotation.y += data.rotationSpeed
+          // The planet mesh is the first child (spherical body)
+          const body = planetGroup.children[0] as THREE.Mesh
+          body.rotation.y += data.rotationSpeed
+
+          // Moons orbit around their parent planet (groups whose name starts with "moon-")
+          planetGroup.children.forEach((child) => {
+            if (child.name && child.name.startsWith("moon-")) {
+              const moonData = child.userData as { angle: number; distance: number; speed: number }
+              moonData.angle += moonData.speed * delta
+              child.position.set(
+                Math.cos(moonData.angle) * moonData.distance,
+                Math.sin(moonData.angle * 0.6) * (moonData.distance * 0.12), // slight inclined orbit
+                Math.sin(moonData.angle) * moonData.distance,
+              )
+              ;(child as THREE.Group).rotation.y += 0.015
+            }
+          })
         })
 
-        // Update asteroids
+        // Update asteroids (main belt between Mars and Jupiter)
         if (asteroidBeltRef.current) {
           asteroidBeltRef.current.children.forEach((asteroid) => {
             const data = asteroid.userData
-            data.orbitAngle += 0.0003 * delta
+            data.orbitAngle += 0.03 * delta
             asteroid.position.x = Math.cos(data.orbitAngle) * data.orbitDistance
             asteroid.position.z = Math.sin(data.orbitAngle) * data.orbitDistance
             asteroid.rotation.x += data.rotationSpeed.x
             asteroid.rotation.y += data.rotationSpeed.y
             asteroid.rotation.z += data.rotationSpeed.z
+          })
+        }
+
+        // Update Kuiper belt (beyond Neptune)
+        if (kuiperBeltRef.current) {
+          kuiperBeltRef.current.children.forEach((body) => {
+            const data = body.userData
+            data.orbitAngle += 0.012 * delta
+            body.position.x = Math.cos(data.orbitAngle) * data.orbitDistance
+            body.position.z = Math.sin(data.orbitAngle) * data.orbitDistance
+            body.rotation.x += data.rotationSpeed.x
+            body.rotation.y += data.rotationSpeed.y
+          })
+        }
+
+        // Update comets (elliptical orbits with tails pointing away from the Sun)
+        if (cometsRef.current) {
+          cometsRef.current.children.forEach((comet) => {
+            const d = comet.userData as { a: number; b: number; angle: number; speed: number; rotation: number; yOffset: number }
+            d.angle += d.speed * delta
+            // Ellipse in a plane rotated around Y by d.rotation
+            const ex = Math.cos(d.angle) * d.a
+            const ez = Math.sin(d.angle) * d.b
+            const cosR = Math.cos(d.rotation)
+            const sinR = Math.sin(d.rotation)
+            const x = ex * cosR - ez * sinR
+            const z = ex * sinR + ez * cosR
+            comet.position.set(x, d.yOffset, z)
+            // Orient tail away from the Sun (0,0,0)
+            const awayFromSun = Math.atan2(z, x)
+            comet.rotation.y = awayFromSun
+          })
+        }
+
+        // Update shooting-star meteors
+        if (meteorsRef.current) {
+          meteorsRef.current.children.forEach((meteor) => {
+            const m = meteor as THREE.Mesh
+            const d = m.userData as { velocity: THREE.Vector3; life: number; maxLife: number; delay: number }
+            d.delay -= delta
+            if (d.delay > 0) {
+              m.visible = false
+              return
+            }
+            if (d.life <= 0) {
+              // Spawn somewhere random at the edges, flying across space
+              const startAngle = Math.random() * Math.PI * 2
+              const startRadius = 220 + Math.random() * 180
+              m.position.set(
+                Math.cos(startAngle) * startRadius,
+                (Math.random() - 0.5) * 120,
+                Math.sin(startAngle) * startRadius,
+              )
+              // Velocity heads roughly across the scene
+              const target = new THREE.Vector3(
+                (Math.random() - 0.5) * 200,
+                (Math.random() - 0.5) * 80,
+                (Math.random() - 0.5) * 200,
+              )
+              d.velocity = target.sub(m.position).normalize().multiplyScalar(120 + Math.random() * 80)
+              d.maxLife = 0.9 + Math.random() * 0.8
+              d.life = d.maxLife
+              // Align the cylinder with velocity direction
+              const dir = d.velocity.clone().normalize()
+              m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir)
+              d.delay = 0
+            } else {
+              m.position.addScaledVector(d.velocity, delta)
+              d.life -= delta
+              const mat = m.material as THREE.MeshBasicMaterial
+              mat.opacity = Math.min(1, d.life / d.maxLife) * 0.95
+              m.visible = true
+              if (d.life <= 0) {
+                d.delay = 2 + Math.random() * 10 // wait before respawn
+              }
+            }
           })
         }
 
@@ -2452,6 +2837,8 @@ export default function SpaceGame() {
 
     // Cleanup
     return () => {
+      cancelled = true
+      if (rafId) cancelAnimationFrame(rafId)
       renderer.dispose()
       scene.clear()
       canvasRef.current?.removeEventListener("pointerdown", handlePointerDown as EventListener)
