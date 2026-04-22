@@ -118,6 +118,7 @@ export default function SpaceGame() {
   const skyDomeRef = useRef<THREE.Mesh | null>(null)
   const starsRef = useRef<THREE.Points | null>(null)
   const cloudsRef = useRef<THREE.Group | null>(null)
+  const earthSunRef = useRef<THREE.Group | null>(null)
   const cabinViewRef = useRef<THREE.Group | null>(null)
   const launchEffectsRef = useRef<THREE.Group | null>(null)
   const solarSystemRef = useRef<THREE.Group | null>(null)
@@ -305,6 +306,9 @@ export default function SpaceGame() {
       if (rocket) rocket.visible = false
       if (cabinView) cabinView.visible = false
       if (skyDome) skyDome.visible = false
+      // Hide Earth-specific elements when in space
+      if (cloudsRef.current) cloudsRef.current.visible = false
+      if (earthSunRef.current) earthSunRef.current.visible = false
 
       // Space is always dark — switch the scene background to near-black and remove fog
       scene.background = new THREE.Color(0x02030a)
@@ -318,6 +322,9 @@ export default function SpaceGame() {
       // Any other phase (menu, launchpad, intro, cabin, countdown, launching) happens on Earth — daytime
       scene.background = new THREE.Color(0x9cc9f2)
       scene.fog = new THREE.Fog(0xc7ddf0, 110, 380)
+      // Show Earth-specific elements when not in space
+      if (cloudsRef.current) cloudsRef.current.visible = true
+      if (earthSunRef.current) earthSunRef.current.visible = true
     }
   }, [])
 
@@ -526,8 +533,11 @@ export default function SpaceGame() {
       return stars
     }
 
-    // Sun (daytime replacement for moon)
+    // Sun (daytime replacement for moon) - only visible on Earth
     function createSun() {
+      const sunGroup = new THREE.Group()
+      sunGroup.name = "earth-sun"
+      
       const sun = new THREE.Mesh(
         new THREE.SphereGeometry(8.5, performanceMode ? 18 : 28, performanceMode ? 18 : 28),
         new THREE.MeshBasicMaterial({
@@ -535,7 +545,7 @@ export default function SpaceGame() {
         }),
       )
       sun.position.set(-124, 118, -84)
-      scene.add(sun)
+      sunGroup.add(sun)
 
       // Soft halo around the sun
       const halo = new THREE.Mesh(
@@ -548,13 +558,16 @@ export default function SpaceGame() {
         }),
       )
       halo.position.copy(sun.position)
-      scene.add(halo)
+      sunGroup.add(halo)
 
       if (!performanceMode) {
         const sunGlow = new THREE.PointLight(0xfff0c0, 0.55, 360, 1.8)
         sunGlow.position.copy(sun.position)
-        scene.add(sunGlow)
+        sunGroup.add(sunGlow)
       }
+      
+      scene.add(sunGroup)
+      return sunGroup
     }
 
     // Clouds
@@ -1781,6 +1794,31 @@ export default function SpaceGame() {
       sunGlow.position.set(0, 0, 0)
       solarSystem.add(sunGlow)
 
+      // Create subtle orbit lines for each planet
+      PLANET_DATA.forEach((data) => {
+        const orbitPoints: THREE.Vector3[] = []
+        const segments = performanceMode ? 64 : 128
+        for (let i = 0; i <= segments; i++) {
+          const angle = (i / segments) * Math.PI * 2
+          orbitPoints.push(new THREE.Vector3(
+            Math.cos(angle) * data.distance,
+            0,
+            Math.sin(angle) * data.distance
+          ))
+        }
+        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints)
+        const orbitLine = new THREE.Line(
+          orbitGeometry,
+          new THREE.LineBasicMaterial({
+            color: 0x4a6a8a,
+            transparent: true,
+            opacity: 0.12,
+          })
+        )
+        orbitLine.name = `orbit-${data.name}`
+        solarSystem.add(orbitLine)
+      })
+
       const planets: THREE.Group[] = []
 
       PLANET_DATA.forEach((data, index) => {
@@ -2128,7 +2166,7 @@ export default function SpaceGame() {
     // Create all scene elements
     const skyDome = createSkyDome()
     const stars = createStars()
-    createSun()
+    const earthSun = createSun()
     createEnvironment()
     const clouds = createCloudBand()
     createLaunchpad()
@@ -2138,6 +2176,7 @@ export default function SpaceGame() {
 
     skyDomeRef.current = skyDome
     starsRef.current = stars
+    earthSunRef.current = earthSun
     cloudsRef.current = clouds
     cabinViewRef.current = cabinView
     launchEffectsRef.current = launchEffects
