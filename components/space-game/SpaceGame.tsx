@@ -171,27 +171,27 @@ export default function SpaceGame() {
     lookSensitivity: 0.002,
   })
 
-  // Performance settings
+  // Performance settings - optimized for smoother FPS
   const performanceModeRef = useRef(false)
   const qualityRef = useRef({
-    antialias: true,
-    enableShadows: true,
-    maxPixelRatio: 1.5,
-    minPixelRatio: 0.85,
+    antialias: false, // Disable antialiasing for better performance
+    enableShadows: false, // Disable shadows for significant FPS boost
+    maxPixelRatio: 1.25,
+    minPixelRatio: 0.7,
     dynamicResolution: true,
-    starCount: 1800,
-    cloudCount: 30,
-    cloudPuffBase: 4,
-    cloudPuffRange: 3,
-    cloudSphereSegments: 16,
-    groundSegments: 130,
-    mountainCount: 42,
-    mountainSegments: 9,
-    treeCount: 180,
-    shrubCount: 140,
-    targetFpsMin: 34,
-    targetFpsMax: 58,
-    shadowMapSize: 2048,
+    starCount: 1200,
+    cloudCount: 18,
+    cloudPuffBase: 3,
+    cloudPuffRange: 2,
+    cloudSphereSegments: 10,
+    groundSegments: 80,
+    mountainCount: 28,
+    mountainSegments: 6,
+    treeCount: 100,
+    shrubCount: 80,
+    targetFpsMin: 45,
+    targetFpsMax: 60,
+    shadowMapSize: 1024,
   })
 
   // Keep control mode ref in sync
@@ -342,22 +342,22 @@ export default function SpaceGame() {
       qualityRef.current = {
         antialias: false,
         enableShadows: false,
-        maxPixelRatio: 1,
-        minPixelRatio: 0.58,
+        maxPixelRatio: 0.9,
+        minPixelRatio: 0.5,
         dynamicResolution: true,
-        starCount: 760,
-        cloudCount: 12,
-        cloudPuffBase: 3,
-        cloudPuffRange: 2,
-        cloudSphereSegments: 9,
-        groundSegments: 58,
-        mountainCount: 24,
-        mountainSegments: 7,
-        treeCount: 72,
-        shrubCount: 64,
-        targetFpsMin: 28,
-        targetFpsMax: 50,
-        shadowMapSize: 1024,
+        starCount: 500,
+        cloudCount: 8,
+        cloudPuffBase: 2,
+        cloudPuffRange: 1,
+        cloudSphereSegments: 6,
+        groundSegments: 40,
+        mountainCount: 16,
+        mountainSegments: 5,
+        treeCount: 50,
+        shrubCount: 40,
+        targetFpsMin: 35,
+        targetFpsMax: 55,
+        shadowMapSize: 512,
       }
     }
 
@@ -1827,23 +1827,20 @@ export default function SpaceGame() {
         const initialAngle = Math.random() * Math.PI * 2
         planetGroup.userData = { ...data, index, angle: initialAngle, orbitAngle: initialAngle }
 
-        const geometry = new THREE.SphereGeometry(data.radius, performanceMode ? 18 : 32, performanceMode ? 14 : 24)
-        const material = new THREE.MeshStandardMaterial({
+        // Optimized planet geometry - reduced segments
+        const geometry = new THREE.SphereGeometry(data.radius, performanceMode ? 12 : 20, performanceMode ? 10 : 16)
+        const material = new THREE.MeshBasicMaterial({
           color: data.color,
-          roughness: 0.8,
-          metalness: 0.1,
         })
         const planet = new THREE.Mesh(geometry, material)
         planet.name = `planet-hit-${index}`
         planetGroup.add(planet)
 
-        // Saturn rings
+        // Saturn rings - optimized
         if (data.name === "Saturno") {
-          const ringGeometry = new THREE.RingGeometry(data.radius * 1.3, data.radius * 2.1, performanceMode ? 48 : 80)
-          const ringMaterial = new THREE.MeshStandardMaterial({
+          const ringGeometry = new THREE.RingGeometry(data.radius * 1.3, data.radius * 2.1, performanceMode ? 32 : 48)
+          const ringMaterial = new THREE.MeshBasicMaterial({
             color: 0xe6d4a8,
-            roughness: 0.9,
-            metalness: 0.05,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.78,
@@ -1854,13 +1851,11 @@ export default function SpaceGame() {
           planetGroup.add(ring)
         }
 
-        // Uranus tilted thin rings
+        // Uranus tilted thin rings - optimized
         if (data.name === "Urano") {
-          const ringGeometry = new THREE.RingGeometry(data.radius * 1.4, data.radius * 1.8, performanceMode ? 40 : 64)
-          const ringMaterial = new THREE.MeshStandardMaterial({
+          const ringGeometry = new THREE.RingGeometry(data.radius * 1.4, data.radius * 1.8, performanceMode ? 24 : 40)
+          const ringMaterial = new THREE.MeshBasicMaterial({
             color: 0xa8d0d0,
-            roughness: 0.85,
-            metalness: 0.1,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.45,
@@ -1872,7 +1867,7 @@ export default function SpaceGame() {
           planetGroup.add(ring)
         }
 
-        // Moons
+        // Moons - optimized with basic material
         if (data.moonList && data.moonList.length > 0) {
           data.moonList.forEach((moonDef, moonIndex) => {
             const moonGroup = new THREE.Group()
@@ -1882,13 +1877,11 @@ export default function SpaceGame() {
             }
             const moonGeo = new THREE.SphereGeometry(
               moonDef.radius,
-              performanceMode ? 10 : 16,
-              performanceMode ? 8 : 12,
+              performanceMode ? 6 : 10,
+              performanceMode ? 5 : 8,
             )
-            const moonMat = new THREE.MeshStandardMaterial({
+            const moonMat = new THREE.MeshBasicMaterial({
               color: moonDef.color,
-              roughness: 0.85,
-              metalness: 0.05,
             })
             const moon = new THREE.Mesh(moonGeo, moonMat)
             moonGroup.add(moon)
@@ -1912,30 +1905,30 @@ export default function SpaceGame() {
       return solarSystem
     }
 
-    // Asteroid belt
+    // Asteroid belt - optimized with shared geometry and basic material
     function createAsteroidBelt() {
       const asteroidBelt = new THREE.Group()
       asteroidBelt.name = "asteroid-belt"
 
-      const asteroidMaterial = new THREE.MeshStandardMaterial({
+      // Use basic material for better performance
+      const asteroidMaterial = new THREE.MeshBasicMaterial({
         color: 0x6b6b6b,
-        roughness: 0.95,
-        flatShading: true,
       })
 
-      const count = performanceMode ? 80 : 180
+      // Share geometry for all asteroids
+      const sharedGeometry = new THREE.DodecahedronGeometry(1, 0)
+
+      const count = performanceMode ? 40 : 90
       const innerRadius = 160
       const outerRadius = 190
 
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2
         const distance = innerRadius + Math.random() * (outerRadius - innerRadius)
-        const size = 0.3 + Math.random() * 1.2
+        const size = 0.4 + Math.random() * 1.0
 
-        const asteroid = new THREE.Mesh(
-          new THREE.DodecahedronGeometry(size, 0),
-          asteroidMaterial
-        )
+        const asteroid = new THREE.Mesh(sharedGeometry, asteroidMaterial)
+        asteroid.scale.setScalar(size)
         asteroid.position.set(
           Math.cos(angle) * distance,
           (Math.random() - 0.5) * 8,
@@ -1949,11 +1942,10 @@ export default function SpaceGame() {
         asteroid.userData = {
           orbitAngle: angle,
           orbitDistance: distance,
-          rotationSpeed: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.02,
-            (Math.random() - 0.5) * 0.02,
-            (Math.random() - 0.5) * 0.02
-          )
+          rotationSpeed: {
+            x: (Math.random() - 0.5) * 0.015,
+            y: (Math.random() - 0.5) * 0.015
+          }
         }
         asteroidBelt.add(asteroid)
       }
@@ -1962,28 +1954,30 @@ export default function SpaceGame() {
       return asteroidBelt
     }
 
-    // Kuiper belt (icy bodies beyond Neptune)
+    // Kuiper belt (icy bodies beyond Neptune) - optimized
     function createKuiperBelt() {
       const kuiperBelt = new THREE.Group()
       kuiperBelt.name = "kuiper-belt"
 
-      const iceMaterial = new THREE.MeshStandardMaterial({
+      // Use basic material for performance
+      const iceMaterial = new THREE.MeshBasicMaterial({
         color: 0xa8b8c8,
-        roughness: 0.7,
-        metalness: 0.15,
-        flatShading: true,
       })
 
-      const count = performanceMode ? 60 : 130
+      // Shared geometry
+      const sharedGeometry = new THREE.DodecahedronGeometry(1, 0)
+
+      const count = performanceMode ? 30 : 70
       const innerRadius = 430
       const outerRadius = 500
 
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2
         const distance = innerRadius + Math.random() * (outerRadius - innerRadius)
-        const size = 0.25 + Math.random() * 1.0
+        const size = 0.3 + Math.random() * 0.8
 
-        const body = new THREE.Mesh(new THREE.DodecahedronGeometry(size, 0), iceMaterial)
+        const body = new THREE.Mesh(sharedGeometry, iceMaterial)
+        body.scale.setScalar(size)
         body.position.set(
           Math.cos(angle) * distance,
           (Math.random() - 0.5) * 16,
@@ -1997,11 +1991,10 @@ export default function SpaceGame() {
         body.userData = {
           orbitAngle: angle,
           orbitDistance: distance,
-          rotationSpeed: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.01,
-            (Math.random() - 0.5) * 0.01,
-            (Math.random() - 0.5) * 0.01,
-          ),
+          rotationSpeed: {
+            x: (Math.random() - 0.5) * 0.008,
+            y: (Math.random() - 0.5) * 0.008
+          },
         }
         kuiperBelt.add(body)
       }
@@ -2010,30 +2003,32 @@ export default function SpaceGame() {
       return kuiperBelt
     }
 
-    // Comets with glowing tails on elliptical orbits
+    // Comets with glowing tails on elliptical orbits - optimized
     function createComets() {
       const comets = new THREE.Group()
       comets.name = "comets"
 
-      const cometCount = performanceMode ? 2 : 4
+      const cometCount = performanceMode ? 2 : 3
+      
+      // Shared geometries
+      const nucleusGeom = new THREE.SphereGeometry(0.5, 8, 6)
+      const comaGeom = new THREE.SphereGeometry(1.3, 8, 6)
+      
       for (let i = 0; i < cometCount; i++) {
         const comet = new THREE.Group()
 
         // Nucleus
         const nucleus = new THREE.Mesh(
-          new THREE.SphereGeometry(0.5, performanceMode ? 10 : 14, performanceMode ? 8 : 10),
-          new THREE.MeshStandardMaterial({
+          nucleusGeom,
+          new THREE.MeshBasicMaterial({
             color: 0xe8eef5,
-            emissive: 0x88aabb,
-            emissiveIntensity: 0.55,
-            roughness: 0.6,
           }),
         )
         comet.add(nucleus)
 
         // Coma (fuzzy halo)
         const coma = new THREE.Mesh(
-          new THREE.SphereGeometry(1.3, performanceMode ? 10 : 14, performanceMode ? 8 : 10),
+          comaGeom,
           new THREE.MeshBasicMaterial({
             color: 0xaaccee,
             transparent: true,
@@ -2083,28 +2078,29 @@ export default function SpaceGame() {
       return comets
     }
 
-    // Shooting-star streaks that flash across the sky at random
+    // Shooting-star streaks that flash across the sky at random - optimized
     function createMeteors() {
       const meteors = new THREE.Group()
       meteors.name = "meteors"
 
-      const count = performanceMode ? 6 : 12
+      const count = performanceMode ? 4 : 8
+      // Shared geometry for all meteors
+      const sharedGeo = new THREE.CylinderGeometry(0.08, 0.02, 6, 3)
+      sharedGeo.translate(0, 3, 0)
+      
       for (let i = 0; i < count; i++) {
-        // Each meteor is a thin stretched line
-        const geo = new THREE.CylinderGeometry(0.08, 0.02, 6, 4)
-        geo.translate(0, 3, 0)
         const mat = new THREE.MeshBasicMaterial({
           color: 0xffffff,
           transparent: true,
           opacity: 0,
           depthWrite: false,
         })
-        const meteor = new THREE.Mesh(geo, mat)
+        const meteor = new THREE.Mesh(sharedGeo, mat)
         meteor.userData = {
           velocity: new THREE.Vector3(),
           life: 0,
           maxLife: 0,
-          delay: Math.random() * 8,
+          delay: Math.random() * 10,
         }
         meteor.visible = false
         meteors.add(meteor)
@@ -2663,38 +2659,43 @@ export default function SpaceGame() {
       else if (world.phase === "space") {
         if (controlModeRef.current === "keyboard") {
           // === FPS-STYLE FREE FLIGHT (keyboard + mouse) ===
-          // Forward direction from yaw/pitch. Default (yaw=0, pitch=0) looks down -Z
+          // Reuse vectors to avoid GC pressure
           const cosPitch = Math.cos(controls.pitch)
-          const forward = new THREE.Vector3(
-            -Math.sin(controls.yaw) * cosPitch,
-            Math.sin(controls.pitch),
-            -Math.cos(controls.yaw) * cosPitch,
-          )
-          const rightVec = new THREE.Vector3(
-            Math.cos(controls.yaw),
-            0,
-            -Math.sin(controls.yaw),
-          )
+          const sinYaw = Math.sin(controls.yaw)
+          const cosYaw = Math.cos(controls.yaw)
+          const sinPitch = Math.sin(controls.pitch)
+          
+          const forwardX = -sinYaw * cosPitch
+          const forwardY = sinPitch
+          const forwardZ = -cosYaw * cosPitch
 
-          // Build movement intent from keys
-          const move = new THREE.Vector3()
-          if (controls.keys.w) move.add(forward)
-          if (controls.keys.s) move.sub(forward)
-          if (controls.keys.d) move.add(rightVec)
-          if (controls.keys.a) move.sub(rightVec)
-          if (controls.keys.space) move.y += 1
-          if (controls.keys.shift) move.y -= 1
+          // Check if any movement keys are pressed
+          const hasMovement = controls.keys.w || controls.keys.s || controls.keys.d || 
+                             controls.keys.a || controls.keys.space || controls.keys.shift
+          
+          if (hasMovement) {
+            let moveX = 0, moveY = 0, moveZ = 0
+            if (controls.keys.w) { moveX += forwardX; moveY += forwardY; moveZ += forwardZ }
+            if (controls.keys.s) { moveX -= forwardX; moveY -= forwardY; moveZ -= forwardZ }
+            if (controls.keys.d) { moveX += cosYaw; moveZ -= sinYaw }
+            if (controls.keys.a) { moveX -= cosYaw; moveZ += sinYaw }
+            if (controls.keys.space) moveY += 1
+            if (controls.keys.shift) moveY -= 1
 
-          if (move.lengthSq() > 0) {
-            move.normalize().multiplyScalar(controls.moveSpeed * delta)
-            controls.spaceTargetPosition.add(move)
+            const len = Math.sqrt(moveX * moveX + moveY * moveY + moveZ * moveZ)
+            if (len > 0) {
+              const scale = controls.moveSpeed * delta / len
+              controls.spaceTargetPosition.x += moveX * scale
+              controls.spaceTargetPosition.y += moveY * scale
+              controls.spaceTargetPosition.z += moveZ * scale
+            }
           }
 
           camera.position.copy(controls.spaceTargetPosition)
           camera.lookAt(
-            camera.position.x + forward.x,
-            camera.position.y + forward.y,
-            camera.position.z + forward.z,
+            camera.position.x + forwardX,
+            camera.position.y + forwardY,
+            camera.position.z + forwardZ,
           )
         } else {
           // === TOUCH ORBIT MODE ===
@@ -2745,29 +2746,34 @@ export default function SpaceGame() {
           })
         })
 
-        // Update asteroids (main belt between Mars and Jupiter)
+        // Update asteroids (main belt between Mars and Jupiter) - optimized with for loop
         if (asteroidBeltRef.current) {
-          asteroidBeltRef.current.children.forEach((asteroid) => {
+          const asteroids = asteroidBeltRef.current.children
+          const asteroidDelta = 0.03 * delta
+          for (let i = 0, len = asteroids.length; i < len; i++) {
+            const asteroid = asteroids[i]
             const data = asteroid.userData
-            data.orbitAngle += 0.03 * delta
+            data.orbitAngle += asteroidDelta
             asteroid.position.x = Math.cos(data.orbitAngle) * data.orbitDistance
             asteroid.position.z = Math.sin(data.orbitAngle) * data.orbitDistance
             asteroid.rotation.x += data.rotationSpeed.x
             asteroid.rotation.y += data.rotationSpeed.y
-            asteroid.rotation.z += data.rotationSpeed.z
-          })
+          }
         }
 
-        // Update Kuiper belt (beyond Neptune)
+        // Update Kuiper belt (beyond Neptune) - optimized with for loop
         if (kuiperBeltRef.current) {
-          kuiperBeltRef.current.children.forEach((body) => {
+          const bodies = kuiperBeltRef.current.children
+          const kuiperDelta = 0.012 * delta
+          for (let i = 0, len = bodies.length; i < len; i++) {
+            const body = bodies[i]
             const data = body.userData
-            data.orbitAngle += 0.012 * delta
+            data.orbitAngle += kuiperDelta
             body.position.x = Math.cos(data.orbitAngle) * data.orbitDistance
             body.position.z = Math.sin(data.orbitAngle) * data.orbitDistance
             body.rotation.x += data.rotationSpeed.x
             body.rotation.y += data.rotationSpeed.y
-          })
+          }
         }
 
         // Update comets (elliptical orbits with tails pointing away from the Sun)
@@ -2845,27 +2851,22 @@ export default function SpaceGame() {
       }
       // Normal phases: Menu, Launchpad
       else {
-        let orbitTargetRadius = 34
-        let orbitTargetHeight = 13
-        // Constant slow rotation speed for both menu and launchpad
-        const orbitSpeed = 0.05
+        const orbitTargetRadius = world.phase === "launchpad" ? 30 : 34
+        const orbitTargetHeight = world.phase === "launchpad" ? 12 : 13
 
-        if (world.phase === "launchpad") {
-          orbitTargetRadius = 30
-          orbitTargetHeight = 12
-        }
-
-        world.orbitRadius = THREE.MathUtils.lerp(world.orbitRadius, orbitTargetRadius, 0.03)
-        world.orbitHeight = THREE.MathUtils.lerp(world.orbitHeight, orbitTargetHeight, 0.03)
-        // Use raw delta to ensure constant angular speed regardless of framerate
-        world.orbitAngle += delta * orbitSpeed
+        world.orbitRadius += (orbitTargetRadius - world.orbitRadius) * 0.03
+        world.orbitHeight += (orbitTargetHeight - world.orbitHeight) * 0.03
+        world.orbitAngle += delta * 0.05
 
         const camX = Math.cos(world.orbitAngle) * world.orbitRadius
         const camZ = Math.sin(world.orbitAngle) * world.orbitRadius
         const camY = world.orbitHeight + Math.sin(elapsed * 0.5) * 0.15
         camera.position.set(camX, camY, camZ)
-        camera.fov = 75
-        camera.updateProjectionMatrix()
+        // Only update projection matrix if FOV changed
+        if (camera.fov !== 75) {
+          camera.fov = 75
+          camera.updateProjectionMatrix()
+        }
         camera.lookAt(0, 7, 0)
 
         if (rocket.visible) {
