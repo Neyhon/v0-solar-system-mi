@@ -2208,6 +2208,7 @@ export default function SpaceGame() {
 
     // Event handlers
     function handlePointerDown(event: PointerEvent | TouchEvent) {
+      console.log("[v0] handlePointerDown triggered, phase:", worldRef.current.phase)
       const clientX = 'clientX' in event ? event.clientX : event.touches?.[0]?.clientX
       const clientY = 'clientY' in event ? event.clientY : event.touches?.[0]?.clientY
       if (clientX == null || clientY == null) return
@@ -2519,6 +2520,7 @@ export default function SpaceGame() {
     // Add event listeners
     canvasRef.current.addEventListener("pointerdown", handlePointerDown as EventListener)
     canvasRef.current.addEventListener("pointermove", handlePointerMove as EventListener)
+    canvasRef.current.addEventListener("click", handlePointerDown as EventListener) // Also handle click for better compatibility
     canvasRef.current.addEventListener("mousedown", handleMouseDown)
     canvasRef.current.addEventListener("mouseup", handleMouseUp)
     canvasRef.current.addEventListener("mouseleave", handleMouseUp)
@@ -3020,9 +3022,10 @@ export default function SpaceGame() {
       if (rafId) cancelAnimationFrame(rafId)
       renderer.dispose()
       scene.clear()
-      canvasRef.current?.removeEventListener("pointerdown", handlePointerDown as EventListener)
-      canvasRef.current?.removeEventListener("pointermove", handlePointerMove as EventListener)
-      canvasRef.current?.removeEventListener("mousedown", handleMouseDown)
+canvasRef.current?.removeEventListener("pointerdown", handlePointerDown as EventListener)
+  canvasRef.current?.removeEventListener("pointermove", handlePointerMove as EventListener)
+  canvasRef.current?.removeEventListener("click", handlePointerDown as EventListener)
+  canvasRef.current?.removeEventListener("mousedown", handleMouseDown)
       canvasRef.current?.removeEventListener("mouseup", handleMouseUp)
       canvasRef.current?.removeEventListener("mouseleave", handleMouseUp)
       canvasRef.current?.removeEventListener("wheel", handleWheel)
