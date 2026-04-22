@@ -427,7 +427,7 @@
     overflow: hidden;
     /* Curved window shape */
     border-radius: 0 0 12% 12% / 0 0 25% 25%;
-    background: #1a3f6c; /* Fallback dark blue if sky doesn't load */
+    /* No background - sky layer provides the background */
 }
 
 /* Daytime sky visible through the cockpit glass */
@@ -435,16 +435,16 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-    background:
-        /* Sky gradient: deep blue high, pale near horizon */
-        linear-gradient(180deg,
-            #4a90d8 0%,
-            #5aa0e4 15%,
-            #72b4f0 35%,
-            #92caf8 55%,
-            #b8ddf5 75%,
-            #dceef8 90%,
-            #fff8e8 100%);
+    /* Sky gradient: bright blue sky with warm horizon */
+    background: linear-gradient(180deg,
+        #3a85d6 0%,
+        #4a95e0 10%,
+        #5ca5eb 25%,
+        #78b8f2 45%,
+        #a0d4f8 65%,
+        #c8e6fc 80%,
+        #f0f6e8 92%,
+        #fff8dc 100%);
 }
 
 /* Sun glow effect */
@@ -499,7 +499,7 @@
 }
 
 /* Soft clouds drifting across the sky */
-.cockpit-stars {
+.cockpit-clouds {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -1159,4 +1159,161 @@
     border-top: 1px solid rgba(70, 167, 255, 0.3);
     padding-top: 0.5rem;
     margin-top: 0.4rem;
+}
+
+/* Close button for planet info */
+.close-info-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: rgba(10, 16, 36, 0.8);
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-info-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.planet-info {
+    position: relative;
+}
+
+/* Planet selection menu */
+.planet-selection-menu {
+    background: linear-gradient(135deg, rgba(10, 16, 36, 0.95), rgba(14, 33, 82, 0.92));
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    min-width: 160px;
+    backdrop-filter: blur(8px);
+    animation: popIn 0.2s ease;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.menu-planet-name {
+    font-size: clamp(1rem, 2vw, 1.3rem);
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    text-align: center;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.menu-btn {
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    border: none;
+    font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.info-btn {
+    background: linear-gradient(135deg, #2a6fc8, #4a90d8);
+    color: white;
+}
+
+.info-btn:hover {
+    background: linear-gradient(135deg, #3a7fd8, #5aa0e8);
+    transform: scale(1.02);
+}
+
+.view-btn {
+    background: linear-gradient(135deg, #28a745, #34c759);
+    color: white;
+}
+
+.view-btn:hover {
+    background: linear-gradient(135deg, #32b755, #44d769);
+    transform: scale(1.02);
+}
+
+/* Planet viewing mode */
+.planet-viewing-mode {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 2rem;
+    pointer-events: none;
+}
+
+.exit-viewing-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #ff4444;
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    pointer-events: auto;
+    z-index: 200;
+}
+
+.exit-viewing-btn:hover {
+    background: #ff4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+.viewing-info {
+    background: linear-gradient(135deg, rgba(10, 16, 36, 0.9), rgba(14, 33, 82, 0.85));
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 1rem 2rem;
+    text-align: center;
+    backdrop-filter: blur(6px);
+}
+
+.viewing-planet-name {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+.viewing-hint {
+    font-size: clamp(0.8rem, 1.6vw, 1rem);
+    color: var(--ink-muted);
 }

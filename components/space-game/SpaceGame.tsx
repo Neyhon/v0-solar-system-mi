@@ -101,6 +101,8 @@ export default function SpaceGame() {
   const [altValue, setAltValue] = useState(0)
   const [timeValue, setTimeValue] = useState("00:00")
   const [planetInfo, setPlanetInfo] = useState<PlanetInfo | null>(null)
+  const [selectedPlanetMenu, setSelectedPlanetMenu] = useState<{name: string, info: PlanetInfo, position: {x: number, y: number}} | null>(null)
+  const [viewingPlanet, setViewingPlanet] = useState<{name: string, info: PlanetInfo} | null>(null)
   const [controlMode, setControlMode] = useState<"touch" | "keyboard">("keyboard")
   const [showSettings, setShowSettings] = useState(false)
   const controlModeRef = useRef<"touch" | "keyboard">("keyboard")
@@ -2214,6 +2216,9 @@ export default function SpaceGame() {
           }, 800)
         }
       } else if (worldRef.current.phase === "space") {
+        // If already viewing a planet, ignore clicks
+        if (viewingPlanet) return
+        
         if (solarSystemRef.current) {
           const hits = raycaster.intersectObjects(solarSystemRef.current.children, true)
 
@@ -2224,30 +2229,45 @@ export default function SpaceGame() {
               const planetGroup = planetsRef.current[index]
               if (planetGroup) {
                 const data = planetGroup.userData
-                setPlanetInfo({
+                const info: PlanetInfo = {
                   name: data.name,
                   description: data.description,
                   temperature: data.temperature,
                   diameter: data.diameter,
                   moons: data.moons,
                   fact: data.fact,
+                }
+                // Show menu with options instead of direct info
+                setSelectedPlanetMenu({
+                  name: data.name,
+                  info,
+                  position: { x: clientX, y: clientY }
                 })
+                setPlanetInfo(null)
                 return
               }
             }
-if (name === "sun-hit-area") {
-  setPlanetInfo({
-  name: "Sol",
-  description: "Nuestra estrella que nos da luz y calor",
-  temperature: "Muy muy caliente",
-  diameter: "Enorme",
-  moons: "8 planetas dan vueltas a su alrededor",
-  fact: "Es como una gran bola de fuego en el cielo"
-  })
+            if (name === "sun-hit-area") {
+              const info: PlanetInfo = {
+                name: "Sol",
+                description: "Nuestra estrella que nos da luz y calor",
+                temperature: "Muy muy caliente",
+                diameter: "Enorme",
+                moons: "8 planetas dan vueltas a su alrededor",
+                fact: "Es como una gran bola de fuego en el cielo"
+              }
+              setSelectedPlanetMenu({
+                name: "Sol",
+                info,
+                position: { x: clientX, y: clientY }
+              })
+              setPlanetInfo(null)
               return
             }
           }
 
+          // Clicked on empty space - close menu
+          setSelectedPlanetMenu(null)
           setPlanetInfo(null)
         }
       }
@@ -3048,10 +3068,8 @@ if (name === "sun-hit-area") {
       <div id="ui-cabin" className={`ui-panel ${phase === "cabin" ? "active" : ""}`}>
         {/* Cockpit glass showing a realistic daytime sky outside */}
         <div className="cockpit-window">
-          <div className="cockpit-sky">
-            <div className="cockpit-stars"></div>
-          </div>
-          <div className="horizon-strut"></div>
+          <div className="cockpit-sky"></div>
+          <div className="cockpit-clouds"></div>
           <div className="center-strut"></div>
           <div className="rivets"></div>
           <div className="window-frame-cartoon"></div>
@@ -3175,30 +3193,92 @@ if (name === "sun-hit-area") {
 
       {/* Space HUD */}
       <div id="ui-space-hud" className={`ui-panel ${phase === "space" ? "active" : ""}`}>
-        <div className="space-hud-top">
-          <div className="space-card">
-            <p className="space-title">EXPLORACIÓN ESPACIAL</p>
-            <p className="space-hint">
-              {controlMode === "keyboard"
-                ? "WASD moverse · Espacio subir · Shift bajar · Ratón mirar (clic para capturar) · Clic en planeta"
-                : "Arrastra para mirar · Pellizca para zoom · Toca un planeta"}
-            </p>
+        {/* Top instructions - hide when viewing planet */}
+        {!viewingPlanet && (
+          <div className="space-hud-top">
+            <div className="space-card">
+              <p className="space-title">EXPLORACIÓN ESPACIAL</p>
+              <p className="space-hint">
+                {controlMode === "keyboard"
+                  ? "WASD moverse · Espacio subir · Shift bajar · Ratón mirar (clic para capturar) · Clic en planeta"
+                  : "Arrastra para mirar · Pellizca para zoom · Toca un planeta"}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Planet selection menu - shows when clicking a planet */}
+        {selectedPlanetMenu && !viewingPlanet && (
+          <div 
+            className="planet-selection-menu"
+            style={{
+              position: 'fixed',
+              left: Math.min(selectedPlanetMenu.position.x, window.innerWidth - 200),
+              top: Math.min(selectedPlanetMenu.position.y, window.innerHeight - 150),
+            }}
+          >
+            <p className="menu-planet-name">{selectedPlanetMenu.name}</p>
+            <div className="menu-buttons">
+              <button 
+                className="menu-btn info-btn"
+                onClick={() => {
+                  setPlanetInfo(selectedPlanetMenu.info)
+                  setSelectedPlanetMenu(null)
+                }}
+              >
+                Información
+              </button>
+              <button 
+                className="menu-btn view-btn"
+                onClick={() => {
+                  setViewingPlanet({ name: selectedPlanetMenu.name, info: selectedPlanetMenu.info })
+                  setSelectedPlanetMenu(null)
+                  setPlanetInfo(null)
+                }}
+              >
+                Visualizar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Planet info panel */}
         <div className="space-hud-bottom">
-          {planetInfo && (
+          {planetInfo && !viewingPlanet && (
             <div className="planet-info">
+              <button 
+                className="close-info-btn"
+                onClick={() => setPlanetInfo(null)}
+              >
+                X
+              </button>
               <p className="planet-name">{planetInfo.name}</p>
               <p className="planet-desc">{planetInfo.description}</p>
               <div className="planet-stats">
-                <span>🌡️ {planetInfo.temperature}</span>
-                <span>📏 {planetInfo.diameter}</span>
-                <span>🌙 {typeof planetInfo.moons === 'number' ? `${planetInfo.moons} lunas` : planetInfo.moons}</span>
+                <span>{planetInfo.temperature}</span>
+                <span>{planetInfo.diameter}</span>
+                <span>{typeof planetInfo.moons === 'number' ? `${planetInfo.moons} lunas` : planetInfo.moons}</span>
               </div>
-              <p className="planet-fact">💡 {planetInfo.fact}</p>
+              <p className="planet-fact">{planetInfo.fact}</p>
             </div>
           )}
         </div>
+
+        {/* Planet viewing mode */}
+        {viewingPlanet && (
+          <div className="planet-viewing-mode">
+            <button 
+              className="exit-viewing-btn"
+              onClick={() => setViewingPlanet(null)}
+            >
+              X
+            </button>
+            <div className="viewing-info">
+              <p className="viewing-planet-name">{viewingPlanet.name}</p>
+              <p className="viewing-hint">Arrastra para rotar el planeta</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
