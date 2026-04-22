@@ -446,6 +446,9 @@
             #b1d4ee 72%,
             #dbeaf5 88%,
             #f2eadb 100%);
+    opacity: 0.1;
+    border-style: none;
+    font-family: inherit;
 }
 
 /* Soft clouds drifting across the sky */
