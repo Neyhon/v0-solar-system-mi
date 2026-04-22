@@ -22,20 +22,20 @@ type PlanetDef = {
   moonList?: MoonDef[]
 }
 
-// Planet data for educational content
+// Planet data for educational content (simplified for young children - I3)
 const PLANET_DATA: PlanetDef[] = [
-  { name: "Mercurio", radius: 0.8, color: 0x9e9e9e, distance: 45, speed: 0.025, rotationSpeed: 0.002, tilt: 0.01, description: "El planeta más cercano al Sol", temperature: "430°C día / -180°C noche", diameter: "4.879 km", moons: 0, fact: "Un año dura solo 88 días terrestres" },
-  { name: "Venus", radius: 1.4, color: 0xffcc66, distance: 70, speed: 0.018, rotationSpeed: 0.001, tilt: 0.03, description: "El planeta más caliente", temperature: "465°C", diameter: "12.104 km", moons: 0, fact: "Gira al revés que los demás planetas" },
+  { name: "Mercurio", radius: 0.8, color: 0x9e9e9e, distance: 45, speed: 0.025, rotationSpeed: 0.002, tilt: 0.01, description: "El más pequeñito y cercano al Sol", temperature: "Muy caliente de día, muy frío de noche", diameter: "Pequeño", moons: 0, fact: "Es muy rápido dando vueltas al Sol" },
+  { name: "Venus", radius: 1.4, color: 0xffcc66, distance: 70, speed: 0.018, rotationSpeed: 0.001, tilt: 0.03, description: "El planeta más caliente de todos", temperature: "Muy muy caliente", diameter: "Mediano", moons: 0, fact: "Gira al revés que los demás" },
   {
     name: "Tierra", radius: 1.5, color: 0x4a90d9, distance: 100, speed: 0.012, rotationSpeed: 0.02, tilt: 0.41,
-    description: "Nuestro hogar", temperature: "15°C promedio", diameter: "12.742 km", moons: 1,
-    fact: "El único planeta con vida conocida",
+    description: "Nuestra casa en el espacio", temperature: "Perfecto para vivir", diameter: "Mediano", moons: 1,
+    fact: "Es donde vivimos nosotros",
     moonList: [{ radius: 0.4, color: 0xcccccc, distance: 3.4, speed: 0.6 }],
   },
   {
     name: "Marte", radius: 1.0, color: 0xc1440e, distance: 140, speed: 0.008, rotationSpeed: 0.019, tilt: 0.44,
-    description: "El planeta rojo", temperature: "-65°C promedio", diameter: "6.779 km", moons: 2,
-    fact: "Tiene las montañas más altas del sistema",
+    description: "El planeta rojo como un tomate", temperature: "Muy frío", diameter: "Un poco más pequeño que la Tierra", moons: 2,
+    fact: "Tiene montañas muy muy altas",
     moonList: [
       { radius: 0.18, color: 0x887766, distance: 2.2, speed: 0.9 },
       { radius: 0.14, color: 0x998877, distance: 2.9, speed: 0.55 },
@@ -43,29 +43,29 @@ const PLANET_DATA: PlanetDef[] = [
   },
   {
     name: "Júpiter", radius: 4.5, color: 0xd4a574, distance: 200, speed: 0.004, rotationSpeed: 0.04, tilt: 0.05,
-    description: "El gigante gaseoso", temperature: "-110°C", diameter: "139.820 km", moons: 95,
-    fact: "Es tan grande que caben 1.300 tierras",
+    description: "El planeta más grande de todos", temperature: "Muy frío", diameter: "Gigante", moons: 95,
+    fact: "Es tan grande que caben muchas Tierras dentro",
     moonList: [
-      { radius: 0.42, color: 0xffe680, distance: 7.2, speed: 0.8 },  // Io
-      { radius: 0.38, color: 0xe8d9b0, distance: 8.8, speed: 0.6 },  // Europa
-      { radius: 0.55, color: 0x988878, distance: 10.6, speed: 0.45 }, // Ganymede
-      { radius: 0.5, color: 0x554440, distance: 12.6, speed: 0.3 },   // Callisto
+      { radius: 0.42, color: 0xffe680, distance: 7.2, speed: 0.8 },
+      { radius: 0.38, color: 0xe8d9b0, distance: 8.8, speed: 0.6 },
+      { radius: 0.55, color: 0x988878, distance: 10.6, speed: 0.45 },
+      { radius: 0.5, color: 0x554440, distance: 12.6, speed: 0.3 },
     ],
   },
   {
     name: "Saturno", radius: 3.8, color: 0xf0d090, distance: 260, speed: 0.003, rotationSpeed: 0.038, tilt: 0.47,
-    description: "El planeta de los anillos", temperature: "-140°C", diameter: "116.460 km", moons: 146,
-    fact: "Sus anillos son de hielo y rocas",
+    description: "El planeta con anillos bonitos", temperature: "Muy frío", diameter: "Muy grande", moons: 146,
+    fact: "Sus anillos son de hielo y piedras",
     moonList: [
-      { radius: 0.5, color: 0xe6b874, distance: 9.8, speed: 0.45 }, // Titan
-      { radius: 0.28, color: 0xdedede, distance: 11.8, speed: 0.3 }, // Rhea
-      { radius: 0.22, color: 0xccbbaa, distance: 13.5, speed: 0.22 }, // Iapetus
+      { radius: 0.5, color: 0xe6b874, distance: 9.8, speed: 0.45 },
+      { radius: 0.28, color: 0xdedede, distance: 11.8, speed: 0.3 },
+      { radius: 0.22, color: 0xccbbaa, distance: 13.5, speed: 0.22 },
     ],
   },
   {
     name: "Urano", radius: 2.5, color: 0x7de3e3, distance: 320, speed: 0.002, rotationSpeed: 0.028, tilt: 1.71,
-    description: "Planeta inclinado", temperature: "-195°C", diameter: "50.724 km", moons: 28,
-    fact: "Gira de lado",
+    description: "El planeta azul verdoso", temperature: "Súper frío", diameter: "Grande", moons: 28,
+    fact: "Gira de lado como una pelota rodando",
     moonList: [
       { radius: 0.3, color: 0xbbcccc, distance: 5.0, speed: 0.5 },
       { radius: 0.26, color: 0xaabbbb, distance: 6.5, speed: 0.35 },
@@ -73,10 +73,10 @@ const PLANET_DATA: PlanetDef[] = [
   },
   {
     name: "Neptuno", radius: 2.4, color: 0x3e5fe3, distance: 380, speed: 0.001, rotationSpeed: 0.03, tilt: 0.49,
-    description: "El planeta más lejano", temperature: "-200°C", diameter: "49.244 km", moons: 16,
-    fact: "Tiene los vientos más fuertes del sistema",
+    description: "El planeta más lejano y azul oscuro", temperature: "El más frío", diameter: "Grande", moons: 16,
+    fact: "Tiene vientos muy muy fuertes",
     moonList: [
-      { radius: 0.42, color: 0xddccbb, distance: 5.6, speed: 0.42 }, // Triton
+      { radius: 0.42, color: 0xddccbb, distance: 5.6, speed: 0.42 },
     ],
   },
 ]
@@ -124,6 +124,8 @@ export default function SpaceGame() {
   const cometsRef = useRef<THREE.Group | null>(null)
   const meteorsRef = useRef<THREE.Group | null>(null)
   const starfieldRef = useRef<THREE.Group | null>(null)
+  const launchSunRef = useRef<THREE.Group | null>(null)
+  const orbitLinesRef = useRef<THREE.Group | null>(null)
 
   // World state
   const worldRef = useRef({
@@ -243,6 +245,9 @@ export default function SpaceGame() {
     if (cometsRef.current) cometsRef.current.visible = inSpace
     if (meteorsRef.current) meteorsRef.current.visible = inSpace
     if (starfieldRef.current) starfieldRef.current.visible = inSpace
+    // Hide launchpad sun and clouds in space (no suns or clouds in outer space!)
+    if (launchSunRef.current) launchSunRef.current.visible = !inSpace
+    if (cloudsRef.current) cloudsRef.current.visible = !inSpace
 
     if (nextPhase === "menu") {
       setHudStatus("Pulsa \"Jugar\" para iniciar")
@@ -523,8 +528,11 @@ export default function SpaceGame() {
       return stars
     }
 
-    // Sun (daytime replacement for moon)
+    // Sun (daytime replacement for moon) - only visible during launchpad/cabin
     function createSun() {
+      const sunGroup = new THREE.Group()
+      sunGroup.name = "launchpad-sun"
+      
       const sun = new THREE.Mesh(
         new THREE.SphereGeometry(8.5, performanceMode ? 18 : 28, performanceMode ? 18 : 28),
         new THREE.MeshBasicMaterial({
@@ -532,7 +540,7 @@ export default function SpaceGame() {
         }),
       )
       sun.position.set(-124, 118, -84)
-      scene.add(sun)
+      sunGroup.add(sun)
 
       // Soft halo around the sun
       const halo = new THREE.Mesh(
@@ -545,13 +553,17 @@ export default function SpaceGame() {
         }),
       )
       halo.position.copy(sun.position)
-      scene.add(halo)
+      sunGroup.add(halo)
 
       if (!performanceMode) {
         const sunGlow = new THREE.PointLight(0xfff0c0, 0.55, 360, 1.8)
         sunGlow.position.copy(sun.position)
-        scene.add(sunGlow)
+        sunGroup.add(sunGlow)
       }
+      
+      scene.add(sunGroup)
+      launchSunRef.current = sunGroup
+      return sunGroup
     }
 
     // Clouds
@@ -1778,6 +1790,34 @@ export default function SpaceGame() {
       sunGlow.position.set(0, 0, 0)
       solarSystem.add(sunGlow)
 
+      // Create orbit lines group
+      const orbitLines = new THREE.Group()
+      orbitLines.name = "orbit-lines"
+      
+      // Create very subtle orbit lines for each planet
+      PLANET_DATA.forEach((data) => {
+        const orbitPoints: THREE.Vector3[] = []
+        const segments = performanceMode ? 64 : 128
+        for (let i = 0; i <= segments; i++) {
+          const angle = (i / segments) * Math.PI * 2
+          orbitPoints.push(new THREE.Vector3(
+            Math.cos(angle) * data.distance,
+            0,
+            Math.sin(angle) * data.distance
+          ))
+        }
+        const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPoints)
+        const orbitMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.08, // Very subtle
+        })
+        const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+        orbitLines.add(orbitLine)
+      })
+      solarSystem.add(orbitLines)
+      orbitLinesRef.current = orbitLines
+
       const planets: THREE.Group[] = []
 
       PLANET_DATA.forEach((data, index) => {
@@ -2195,15 +2235,15 @@ export default function SpaceGame() {
                 return
               }
             }
-            if (name === "sun-hit-area") {
-              setPlanetInfo({
-                name: "Sol",
-                description: "Estrella central del sistema solar",
-                temperature: "5.500°C superficie",
-                diameter: "1.392.700 km",
-                moons: "8 planetas",
-                fact: "Es tan grande que caben 1.3 millones de tierras"
-              })
+if (name === "sun-hit-area") {
+  setPlanetInfo({
+  name: "Sol",
+  description: "Nuestra estrella que nos da luz y calor",
+  temperature: "Muy muy caliente",
+  diameter: "Enorme",
+  moons: "8 planetas dan vueltas a su alrededor",
+  fact: "Es como una gran bola de fuego en el cielo"
+  })
               return
             }
           }
@@ -2220,14 +2260,23 @@ export default function SpaceGame() {
 
       const controls = cameraControlsRef.current
 
-      // Only handle drag-to-look in touch mode
-      if (worldRef.current.phase === "space" && controls.isDragging && controlModeRef.current === "touch") {
+      // Handle drag-to-look in both modes when dragging (and not pointer locked)
+      if (worldRef.current.phase === "space" && controls.isDragging && !controls.pointerLocked) {
         const deltaX = clientX - controls.previousMousePosition.x
         const deltaY = clientY - controls.previousMousePosition.y
 
-        controls.cameraRotation.x += deltaX * 0.005
-        controls.cameraRotation.y += deltaY * 0.005
-        controls.cameraRotation.y = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, controls.cameraRotation.y))
+        if (controlModeRef.current === "keyboard") {
+          // Update yaw/pitch for keyboard mode
+          controls.yaw -= deltaX * 0.003
+          controls.pitch -= deltaY * 0.003
+          const limit = Math.PI / 2 - 0.05
+          controls.pitch = Math.max(-limit, Math.min(limit, controls.pitch))
+        } else {
+          // Update camera rotation for touch mode
+          controls.cameraRotation.x += deltaX * 0.005
+          controls.cameraRotation.y += deltaY * 0.005
+          controls.cameraRotation.y = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, controls.cameraRotation.y))
+        }
 
         controls.previousMousePosition = { x: clientX, y: clientY }
       } else if (worldRef.current.phase === "launchpad") {
@@ -2258,13 +2307,16 @@ export default function SpaceGame() {
 
     function handleMouseDown(event: MouseEvent) {
       if (worldRef.current.phase === "space") {
-        if (controlModeRef.current === "touch") {
-          cameraControlsRef.current.isDragging = true
-          cameraControlsRef.current.previousMousePosition = { x: event.clientX, y: event.clientY }
-        } else if (controlModeRef.current === "keyboard") {
-          // Request pointer lock on click in keyboard mode
-          if (!cameraControlsRef.current.pointerLocked && canvasRef.current) {
+        // Always enable dragging for camera rotation
+        cameraControlsRef.current.isDragging = true
+        cameraControlsRef.current.previousMousePosition = { x: event.clientX, y: event.clientY }
+        
+        // In keyboard mode, try to request pointer lock as well for smoother control
+        if (controlModeRef.current === "keyboard" && !cameraControlsRef.current.pointerLocked && canvasRef.current) {
+          try {
             canvasRef.current.requestPointerLock()
+          } catch {
+            // Pointer lock may fail, fallback to drag mode
           }
         }
       }
@@ -2563,6 +2615,10 @@ export default function SpaceGame() {
     if (cometsRef.current) cometsRef.current.visible = false
     if (meteorsRef.current) meteorsRef.current.visible = false
     if (starfieldRef.current) starfieldRef.current.visible = false
+
+            // Hide launchpad sun and clouds when entering space (no suns or clouds in space!)
+            if (launchSunRef.current) launchSunRef.current.visible = false
+            if (cloudsRef.current) cloudsRef.current.visible = false
 
             controls.spaceTargetPosition.set(120, 30, 120)
             controls.cameraRotation = { x: 0, y: 0 }

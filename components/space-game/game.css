@@ -408,11 +408,11 @@
 
 /* ============ REALISTIC DAYTIME COCKPIT ============ */
 #ui-cabin {
-    display: flex;
-    flex-direction: column;
-    pointer-events: none;
-    background: linear-gradient(180deg, #7ec2ea 0%, #5a9ed0 40%, #0d4d9f 55%, #0a3a78 100%);
-}
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+  background: transparent;
+  }
 
 #ui-cabin.active {
     pointer-events: auto;
@@ -427,22 +427,23 @@
     overflow: hidden;
     /* Curved window shape */
     border-radius: 0 0 12% 12% / 0 0 25% 25%;
+    background: #1a3f6c; /* Fallback dark blue if sky doesn't load */
 }
 
 /* Daytime sky visible through the cockpit glass */
 .cockpit-sky {
     position: absolute;
-    inset: -2% -2% 0 -2%;
+    inset: 0;
     z-index: 1;
     background:
         /* Sky gradient: deep blue high, pale near horizon */
         linear-gradient(180deg,
-            #2a6fc8 0%,
-            #4a8fd8 15%,
-            #6ab0e8 35%,
-            #8fc8f2 55%,
+            #4a90d8 0%,
+            #5aa0e4 15%,
+            #72b4f0 35%,
+            #92caf8 55%,
             #b8ddf5 75%,
-            #e8f4fc 90%,
+            #dceef8 90%,
             #fff8e8 100%);
 }
 
