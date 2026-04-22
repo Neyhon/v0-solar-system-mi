@@ -2939,7 +2939,7 @@ export default function SpaceGame() {
         </button>
 
         <div className="title-wrap">
-          <p className="eyebrow">Fira Tecnològica - Educación Infantil</p>
+          <p className="eyebrow">Feria Tecnológica - Educación Infantil</p>
           <h1 className="game-title">Misión: Viaje al Sistema Solar</h1>
           <p className="subtitle">Exploración espacial interactiva con enfoque pedagógico</p>
         </div>

@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'Misión: Viaje al Sistema Solar',
-  description: 'Exploración espacial interactiva con enfoque pedagógico - Fira Tecnológica',
+  description: 'Exploración espacial interactiva con enfoque pedagógico - Feria Tecnológica',
   generator: 'v0.app',
   icons: {
     icon: [
