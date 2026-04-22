@@ -433,19 +433,68 @@
 .cockpit-sky {
     position: absolute;
     inset: -2% -2% 0 -2%;
+    z-index: 1;
     background:
-        /* Sun glow in upper area */
-        radial-gradient(ellipse 400px 220px at 72% 22%, rgba(255, 238, 190, 0.55) 0%, rgba(255, 228, 170, 0) 60%),
-        /* Sun disc */
-        radial-gradient(circle at 72% 22%, #fff6d4 0%, #ffe9ac 1.2%, rgba(255, 233, 172, 0) 2.2%),
         /* Sky gradient: deep blue high, pale near horizon */
         linear-gradient(180deg,
-            #3f7fc8 0%,
-            #5c9dd8 18%,
-            #81b9e8 42%,
-            #b1d4ee 72%,
-            #dbeaf5 88%,
-            #f2eadb 100%);
+            #2a6fc8 0%,
+            #4a8fd8 15%,
+            #6ab0e8 35%,
+            #8fc8f2 55%,
+            #b8ddf5 75%,
+            #e8f4fc 90%,
+            #fff8e8 100%);
+}
+
+/* Sun glow effect */
+.cockpit-sky::before {
+    content: "";
+    position: absolute;
+    top: 8%;
+    right: 15%;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle,
+        rgba(255, 255, 240, 1) 0%,
+        rgba(255, 250, 220, 0.95) 8%,
+        rgba(255, 240, 180, 0.7) 20%,
+        rgba(255, 220, 140, 0.4) 35%,
+        rgba(255, 200, 100, 0.15) 55%,
+        transparent 70%);
+    border-radius: 50%;
+    filter: blur(2px);
+    box-shadow: 
+        0 0 60px 30px rgba(255, 250, 200, 0.5),
+        0 0 100px 60px rgba(255, 230, 150, 0.3),
+        0 0 140px 90px rgba(255, 210, 100, 0.15);
+    animation: sunPulse 4s ease-in-out infinite;
+}
+
+@keyframes sunPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.95; }
+}
+
+/* Sun rays / god rays effect */
+.cockpit-sky::after {
+    content: "";
+    position: absolute;
+    top: -5%;
+    right: 5%;
+    width: 60%;
+    height: 70%;
+    background: 
+        linear-gradient(165deg, rgba(255, 250, 220, 0.15) 0%, transparent 40%),
+        linear-gradient(155deg, rgba(255, 245, 200, 0.12) 0%, transparent 35%),
+        linear-gradient(175deg, rgba(255, 248, 210, 0.1) 0%, transparent 45%);
+    pointer-events: none;
+    opacity: 0.7;
+    animation: raysFade 6s ease-in-out infinite alternate;
+}
+
+@keyframes raysFade {
+    0% { opacity: 0.5; }
+    100% { opacity: 0.8; }
 }
 
 /* Soft clouds drifting across the sky */
@@ -453,24 +502,36 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
+    z-index: 2;
     background-image:
-        radial-gradient(ellipse 180px 38px at 12% 45%, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.6) 30%, transparent 62%),
-        radial-gradient(ellipse 140px 30px at 18% 48%, rgba(255, 255, 255, 0.7), transparent 62%),
-        radial-gradient(ellipse 240px 44px at 38% 32%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.65) 28%, transparent 60%),
-        radial-gradient(ellipse 180px 36px at 43% 36%, rgba(255, 255, 255, 0.55), transparent 65%),
-        radial-gradient(ellipse 160px 34px at 58% 55%, rgba(255, 255, 255, 0.85), transparent 60%),
-        radial-gradient(ellipse 120px 28px at 62% 58%, rgba(255, 255, 255, 0.6), transparent 65%),
-        radial-gradient(ellipse 200px 38px at 86% 50%, rgba(255, 255, 255, 0.78), transparent 62%),
-        radial-gradient(ellipse 140px 30px at 90% 54%, rgba(255, 255, 255, 0.58), transparent 65%),
-        radial-gradient(ellipse 260px 40px at 25% 78%, rgba(255, 255, 255, 0.55), transparent 65%),
-        radial-gradient(ellipse 220px 36px at 72% 82%, rgba(255, 255, 255, 0.55), transparent 65%);
-    opacity: 0.95;
-    animation: cloudsDrift 120s linear infinite;
+        /* Main fluffy clouds - larger and more prominent */
+        radial-gradient(ellipse 220px 55px at 8% 35%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.7) 35%, transparent 70%),
+        radial-gradient(ellipse 180px 45px at 15% 38%, rgba(255, 255, 255, 0.85), transparent 65%),
+        radial-gradient(ellipse 140px 40px at 5% 40%, rgba(255, 255, 255, 0.75), transparent 60%),
+        
+        /* Center-left cloud cluster */
+        radial-gradient(ellipse 280px 60px at 32% 28%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.6) 40%, transparent 70%),
+        radial-gradient(ellipse 200px 50px at 38% 32%, rgba(255, 255, 255, 0.8), transparent 65%),
+        radial-gradient(ellipse 160px 45px at 28% 35%, rgba(255, 255, 255, 0.7), transparent 60%),
+        
+        /* Right side clouds (away from sun) */
+        radial-gradient(ellipse 200px 50px at 55% 50%, rgba(255, 255, 255, 0.88), transparent 65%),
+        radial-gradient(ellipse 160px 42px at 60% 54%, rgba(255, 255, 255, 0.7), transparent 60%),
+        
+        /* Far right clouds */
+        radial-gradient(ellipse 180px 48px at 85% 45%, rgba(255, 255, 255, 0.85), transparent 65%),
+        radial-gradient(ellipse 140px 38px at 92% 48%, rgba(255, 255, 255, 0.65), transparent 60%),
+        
+        /* Lower horizon clouds - softer and hazier */
+        radial-gradient(ellipse 300px 35px at 20% 85%, rgba(255, 255, 255, 0.5), transparent 70%),
+        radial-gradient(ellipse 280px 32px at 60% 88%, rgba(255, 255, 255, 0.45), transparent 70%),
+        radial-gradient(ellipse 240px 30px at 80% 82%, rgba(255, 255, 255, 0.4), transparent 65%);
+    animation: cloudsDrift 90s linear infinite;
 }
 
 @keyframes cloudsDrift {
     from { transform: translateX(0); }
-    to { transform: translateX(-6%); }
+    to { transform: translateX(-8%); }
 }
 
 /* Cockpit glass: mostly transparent — sky must be clearly visible */
@@ -478,6 +539,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
+    z-index: 5;
     border-radius: 0 0 12% 12% / 0 0 25% 25%;
     /* Only a thin metallic frame around the edge */
     box-shadow:
@@ -507,6 +569,7 @@
     left: 0;
     width: 3.5%;
     height: 100%;
+    z-index: 6;
     background: linear-gradient(90deg, #0f3975 0%, #1a4a8a 55%, #2b5f99 100%);
     box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.45);
 }
@@ -519,6 +582,7 @@
     right: 0;
     width: 3.5%;
     height: 100%;
+    z-index: 6;
     background: linear-gradient(270deg, #0f3975 0%, #1a4a8a 55%, #2b5f99 100%);
     box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.45);
 }
@@ -542,22 +606,12 @@
         -2px 0 4px rgba(0, 0, 0, 0.35),
         inset 1px 0 0 rgba(255, 255, 255, 0.15);
     pointer-events: none;
-    z-index: 3;
+    z-index: 10;
 }
 
-/* Horizontal strut (thin) */
+/* Horizontal strut (thin) - removed for cleaner view */
 .cockpit-window .horizon-strut {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 4px;
-    background: linear-gradient(180deg, #1a447a, #2b5f99, #0f3975);
-    box-shadow:
-        0 0 0 1px rgba(10, 40, 90, 0.5),
-        0 1px 3px rgba(0, 0, 0, 0.35);
-    pointer-events: none;
-    z-index: 2;
+    display: none;
 }
 
 /* Small rivets on the frame */
@@ -565,7 +619,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 2;
+    z-index: 8;
     background-image:
         radial-gradient(circle 3px at 18px 26px, #6a90c0 0 40%, #1a3960 45% 100%),
         radial-gradient(circle 3px at 18px calc(50% - 8px), #6a90c0 0 40%, #1a3960 45% 100%),
