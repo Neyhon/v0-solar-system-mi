@@ -105,6 +105,8 @@ export default function SpaceGame() {
   const [viewingPlanet, setViewingPlanet] = useState(false)
   const [selectedPlanetIndex, setSelectedPlanetIndex] = useState<number | null>(null)
   const [controlMode, setControlMode] = useState<"touch" | "keyboard">("keyboard")
+  const viewingPlanetRef = useRef(false)
+  const selectedPlanetIndexRef = useRef<number | null>(null)
   const [showSettings, setShowSettings] = useState(false)
   const controlModeRef = useRef<"touch" | "keyboard">("keyboard")
 
@@ -169,6 +171,9 @@ export default function SpaceGame() {
     pointerLocked: false,
     moveSpeed: 50, // units per second
     lookSensitivity: 0.002,
+    // Planet viewing mode rotation
+    planetViewRotation: { x: 0, y: 0 },
+    isPlanetDragging: false,
   })
 
   // Performance settings - optimized for smoother FPS
@@ -201,6 +206,16 @@ export default function SpaceGame() {
       try { localStorage.setItem("spaceGameControlMode", controlMode) } catch {}
     }
   }, [controlMode])
+
+  // Keep viewingPlanet ref in sync for event handlers
+  useEffect(() => {
+    viewingPlanetRef.current = viewingPlanet
+  }, [viewingPlanet])
+
+  // Keep selectedPlanetIndex ref in sync for animation loop
+  useEffect(() => {
+    selectedPlanetIndexRef.current = selectedPlanetIndex
+  }, [selectedPlanetIndex])
 
   // Load control mode on mount
   useEffect(() => {
@@ -2268,14 +2283,36 @@ export default function SpaceGame() {
 
       const controls = cameraControlsRef.current
 
-      // Only handle drag-to-look in touch mode
-      if (worldRef.current.phase === "space" && controls.isDragging && controlModeRef.current === "touch") {
+      // Handle planet viewing mode rotation (both touch and keyboard modes)
+      if (worldRef.current.phase === "space" && viewingPlanetRef.current && controls.isPlanetDragging) {
         const deltaX = clientX - controls.previousMousePosition.x
         const deltaY = clientY - controls.previousMousePosition.y
 
-        controls.cameraRotation.x += deltaX * 0.005
-        controls.cameraRotation.y += deltaY * 0.005
-        controls.cameraRotation.y = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, controls.cameraRotation.y))
+        controls.planetViewRotation.x += deltaX * 0.01
+        controls.planetViewRotation.y += deltaY * 0.01
+        controls.planetViewRotation.y = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, controls.planetViewRotation.y))
+
+        controls.previousMousePosition = { x: clientX, y: clientY }
+        return
+      }
+
+      // Handle camera rotation when dragging (both touch mode and keyboard mode without pointer lock)
+      if (worldRef.current.phase === "space" && controls.isDragging) {
+        const deltaX = clientX - controls.previousMousePosition.x
+        const deltaY = clientY - controls.previousMousePosition.y
+
+        if (controlModeRef.current === "touch") {
+          // Touch mode uses orbit camera rotation
+          controls.cameraRotation.x += deltaX * 0.005
+          controls.cameraRotation.y += deltaY * 0.005
+          controls.cameraRotation.y = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, controls.cameraRotation.y))
+        } else if (controlModeRef.current === "keyboard" && !controls.pointerLocked) {
+          // Keyboard mode without pointer lock - use yaw/pitch for FPS-style camera
+          controls.yaw -= deltaX * 0.005
+          controls.pitch -= deltaY * 0.005
+          const limit = Math.PI / 2 - 0.05
+          controls.pitch = Math.max(-limit, Math.min(limit, controls.pitch))
+        }
 
         controls.previousMousePosition = { x: clientX, y: clientY }
       } else if (worldRef.current.phase === "launchpad") {
@@ -2306,20 +2343,29 @@ export default function SpaceGame() {
 
     function handleMouseDown(event: MouseEvent) {
       if (worldRef.current.phase === "space") {
-        if (controlModeRef.current === "touch") {
-          cameraControlsRef.current.isDragging = true
-          cameraControlsRef.current.previousMousePosition = { x: event.clientX, y: event.clientY }
-        } else if (controlModeRef.current === "keyboard") {
-          // Request pointer lock on click in keyboard mode
-          if (!cameraControlsRef.current.pointerLocked && canvasRef.current) {
-            canvasRef.current.requestPointerLock()
-          }
+        const controls = cameraControlsRef.current
+        
+        // If in planet viewing mode, handle planet rotation dragging
+        if (viewingPlanetRef.current) {
+          controls.isPlanetDragging = true
+          controls.previousMousePosition = { x: event.clientX, y: event.clientY }
+          return
+        }
+        
+        // Both touch and keyboard modes can drag to rotate camera
+        controls.isDragging = true
+        controls.previousMousePosition = { x: event.clientX, y: event.clientY }
+        
+        // In keyboard mode, also request pointer lock for smoother FPS-style look
+        if (controlModeRef.current === "keyboard" && !controls.pointerLocked && canvasRef.current) {
+          canvasRef.current.requestPointerLock()
         }
       }
     }
 
     function handleMouseUp() {
       cameraControlsRef.current.isDragging = false
+      cameraControlsRef.current.isPlanetDragging = false
     }
 
     function handlePointerLockChange() {
@@ -2368,6 +2414,13 @@ export default function SpaceGame() {
     function handleTouchStart(event: TouchEvent) {
       const controls = cameraControlsRef.current
       if (worldRef.current.phase === "space") {
+        // Handle planet viewing mode
+        if (viewingPlanetRef.current && event.touches.length === 1) {
+          controls.isPlanetDragging = true
+          controls.previousMousePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+          return
+        }
+        
         if (event.touches.length === 1) {
           controls.isDragging = true
           controls.previousMousePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY }
@@ -2382,6 +2435,19 @@ export default function SpaceGame() {
     function handleTouchMove(event: TouchEvent) {
       const controls = cameraControlsRef.current
       if (worldRef.current.phase === "space") {
+        // Handle planet viewing mode rotation
+        if (viewingPlanetRef.current && controls.isPlanetDragging && event.touches.length === 1) {
+          const deltaX = event.touches[0].clientX - controls.previousMousePosition.x
+          const deltaY = event.touches[0].clientY - controls.previousMousePosition.y
+
+          controls.planetViewRotation.x += deltaX * 0.01
+          controls.planetViewRotation.y += deltaY * 0.01
+          controls.planetViewRotation.y = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, controls.planetViewRotation.y))
+
+          controls.previousMousePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+          return
+        }
+        
         if (event.touches.length === 2) {
           const dx = event.touches[0].clientX - event.touches[1].clientX
           const dy = event.touches[0].clientY - event.touches[1].clientY
@@ -2405,6 +2471,7 @@ export default function SpaceGame() {
 
     function handleTouchEnd() {
       cameraControlsRef.current.isDragging = false
+      cameraControlsRef.current.isPlanetDragging = false
     }
 
     function handleResize() {
@@ -2713,6 +2780,29 @@ export default function SpaceGame() {
           const lookZ = camera.position.z + controls.targetDistance * Math.sin(phi) * Math.sin(theta)
 
           camera.lookAt(lookX, lookY, lookZ)
+        }
+
+        // Handle planet viewing mode - rotate selected planet based on drag
+        const currentPlanetIndex = selectedPlanetIndexRef.current
+        if (viewingPlanetRef.current && currentPlanetIndex !== null) {
+          const controls = cameraControlsRef.current
+          
+          if (currentPlanetIndex === -1) {
+            // Sun viewing - find the sun mesh
+            const sunMesh = solarSystemRef.current?.getObjectByName("sun-hit-area") as THREE.Mesh
+            if (sunMesh) {
+              sunMesh.rotation.y = controls.planetViewRotation.x
+              sunMesh.rotation.x = controls.planetViewRotation.y
+            }
+          } else if (currentPlanetIndex >= 0 && planetsRef.current[currentPlanetIndex]) {
+            // Planet viewing
+            const planetGroup = planetsRef.current[currentPlanetIndex]
+            const body = planetGroup.children[0] as THREE.Mesh
+            if (body) {
+              body.rotation.y = controls.planetViewRotation.x
+              body.rotation.x = controls.planetViewRotation.y
+            }
+          }
         }
 
         // Update planets and their moons
@@ -3186,6 +3276,16 @@ export default function SpaceGame() {
           {/* Planet Menu - shown when clicking a planet */}
           {planetInfo && planetMenuOpen && !viewingPlanet && (
             <div className="planet-menu">
+              <button 
+                className="planet-menu-close-btn"
+                onClick={() => {
+                  setPlanetMenuOpen(false)
+                  setPlanetInfo(null)
+                  setSelectedPlanetIndex(null)
+                }}
+              >
+                X
+              </button>
               <p className="planet-menu-title">{planetInfo.name}</p>
               <div className="planet-menu-buttons">
                 <button 
@@ -3201,9 +3301,11 @@ export default function SpaceGame() {
                   onClick={() => {
                     setPlanetMenuOpen(false)
                     setViewingPlanet(true)
+                    // Reset planet rotation when entering viewing mode
+                    cameraControlsRef.current.planetViewRotation = { x: 0, y: 0 }
                   }}
                 >
-                  Visualizar
+                  Visualización
                 </button>
               </div>
             </div>

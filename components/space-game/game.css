@@ -1115,10 +1115,37 @@
     border: 2px solid var(--accent);
     border-radius: 16px;
     padding: 1.2rem 1.6rem;
+    padding-top: 2.2rem;
     max-width: min(90vw, 320px);
     backdrop-filter: blur(8px);
     animation: slideUp 0.3s ease;
     text-align: center;
+    position: relative;
+}
+
+.planet-menu-close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--ui-border);
+    background: rgba(10, 16, 36, 0.8);
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.planet-menu-close-btn:hover {
+    background: rgba(255, 95, 102, 0.3);
+    border-color: var(--danger);
+    color: var(--danger);
 }
 
 .planet-menu-title {
