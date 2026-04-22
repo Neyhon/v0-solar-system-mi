@@ -101,6 +101,9 @@ export default function SpaceGame() {
   const [altValue, setAltValue] = useState(0)
   const [timeValue, setTimeValue] = useState("00:00")
   const [planetInfo, setPlanetInfo] = useState<PlanetInfo | null>(null)
+  const [planetMenuOpen, setPlanetMenuOpen] = useState(false)
+  const [viewingPlanet, setViewingPlanet] = useState(false)
+  const [selectedPlanetIndex, setSelectedPlanetIndex] = useState<number | null>(null)
   const [controlMode, setControlMode] = useState<"touch" | "keyboard">("keyboard")
   const [showSettings, setShowSettings] = useState(false)
   const controlModeRef = useRef<"touch" | "keyboard">("keyboard")
@@ -2192,6 +2195,9 @@ export default function SpaceGame() {
                   moons: data.moons,
                   fact: data.fact,
                 })
+                setSelectedPlanetIndex(index)
+                setPlanetMenuOpen(true)
+                setViewingPlanet(false)
                 return
               }
             }
@@ -2204,11 +2210,18 @@ export default function SpaceGame() {
                 moons: "8 planetas",
                 fact: "Es tan grande que caben 1.3 millones de tierras"
               })
+              setSelectedPlanetIndex(-1) // -1 for sun
+              setPlanetMenuOpen(true)
+              setViewingPlanet(false)
               return
             }
           }
 
-          setPlanetInfo(null)
+          // Only close if not viewing
+          if (!viewingPlanet) {
+            setPlanetInfo(null)
+            setPlanetMenuOpen(false)
+          }
         }
       }
     }
@@ -3130,8 +3143,44 @@ export default function SpaceGame() {
           </div>
         </div>
         <div className="space-hud-bottom">
-          {planetInfo && (
+          {/* Planet Menu - shown when clicking a planet */}
+          {planetInfo && planetMenuOpen && !viewingPlanet && (
+            <div className="planet-menu">
+              <p className="planet-menu-title">{planetInfo.name}</p>
+              <div className="planet-menu-buttons">
+                <button 
+                  className="planet-menu-btn info-btn"
+                  onClick={() => {
+                    setPlanetMenuOpen(false)
+                  }}
+                >
+                  Información
+                </button>
+                <button 
+                  className="planet-menu-btn view-btn"
+                  onClick={() => {
+                    setPlanetMenuOpen(false)
+                    setViewingPlanet(true)
+                  }}
+                >
+                  Visualizar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Planet Info - shown after clicking "Información" */}
+          {planetInfo && !planetMenuOpen && !viewingPlanet && (
             <div className="planet-info">
+              <button 
+                className="planet-close-btn"
+                onClick={() => {
+                  setPlanetInfo(null)
+                  setSelectedPlanetIndex(null)
+                }}
+              >
+                X
+              </button>
               <p className="planet-name">{planetInfo.name}</p>
               <p className="planet-desc">{planetInfo.description}</p>
               <div className="planet-stats">
@@ -3140,6 +3189,24 @@ export default function SpaceGame() {
                 <span>🌙 {typeof planetInfo.moons === 'number' ? `${planetInfo.moons} lunas` : planetInfo.moons}</span>
               </div>
               <p className="planet-fact">💡 {planetInfo.fact}</p>
+            </div>
+          )}
+
+          {/* Planet Viewing Mode - 3D view with close button */}
+          {viewingPlanet && planetInfo && (
+            <div className="planet-viewing">
+              <button 
+                className="planet-view-close-btn"
+                onClick={() => {
+                  setViewingPlanet(false)
+                  setPlanetInfo(null)
+                  setSelectedPlanetIndex(null)
+                }}
+              >
+                X
+              </button>
+              <p className="planet-viewing-title">Visualizando: {planetInfo.name}</p>
+              <p className="planet-viewing-hint">Arrastra para rotar el planeta</p>
             </div>
           )}
         </div>
