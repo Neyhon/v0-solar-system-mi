@@ -400,8 +400,8 @@ export default function SpaceGame() {
     scene.fog = new THREE.Fog(0xc7ddf0, 110, 380)
     sceneRef.current = scene
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000)
+// Camera - extended far plane to see distant planets
+      const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000)
     camera.position.set(34, 13, 30)
     cameraRef.current = camera
 
@@ -2196,9 +2196,10 @@ export default function SpaceGame() {
 
     cabinView.visible = false
 
-    // Raycaster and pointer
-    const pointer = new THREE.Vector2()
-    const raycaster = new THREE.Raycaster()
+// Raycaster and pointer
+  const pointer = new THREE.Vector2()
+  const raycaster = new THREE.Raycaster()
+  raycaster.far = 5000 // Extend raycaster range to reach distant planets
 
     function updatePointerPosition(clientX: number, clientY: number) {
       pointer.x = (clientX / window.innerWidth) * 2 - 1
@@ -2227,8 +2228,23 @@ export default function SpaceGame() {
           }, 800)
         }
       } else if (worldRef.current.phase === "space") {
+        console.log("[v0] Click in space phase, solarSystemRef:", !!solarSystemRef.current)
         if (solarSystemRef.current) {
-          const hits = raycaster.intersectObjects(solarSystemRef.current.children, true)
+          console.log("[v0] SolarSystem visible:", solarSystemRef.current.visible)
+          // Use recursive search to find planets inside groups
+          const allObjects: THREE.Object3D[] = []
+          solarSystemRef.current.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) {
+              allObjects.push(obj)
+            }
+          })
+          const hits = raycaster.intersectObjects(allObjects, false)
+          
+          console.log("[v0] Raycasting - hits found:", hits.length, "objects checked:", allObjects.length)
+          console.log("[v0] Pointer position:", pointer.x, pointer.y)
+          if (hits.length > 0) {
+            console.log("[v0] Hit object names:", hits.map(h => h.object.name).join(", "))
+          }
 
           for (const hit of hits) {
             const name = hit.object.name
@@ -2350,6 +2366,26 @@ export default function SpaceGame() {
           controls.isPlanetDragging = true
           controls.previousMousePosition = { x: event.clientX, y: event.clientY }
           return
+        }
+        
+        // Check if we're clicking on a planet first - if so, don't start dragging
+        updatePointerPosition(event.clientX, event.clientY)
+        raycaster.setFromCamera(pointer, camera)
+        if (solarSystemRef.current) {
+          const allObjects: THREE.Object3D[] = []
+          solarSystemRef.current.traverse((obj) => {
+            if (obj instanceof THREE.Mesh) {
+              allObjects.push(obj)
+            }
+          })
+          const hits = raycaster.intersectObjects(allObjects, false)
+          for (const hit of hits) {
+            const name = hit.object.name
+            if ((name && name.startsWith("planet-hit-")) || name === "sun-hit-area") {
+              // We're clicking on a planet, don't start camera drag
+              return
+            }
+          }
         }
         
         // Both touch and keyboard modes can drag to rotate camera
